@@ -2,6 +2,23 @@
   box-sizing: border-box;
 }
 
+:root {
+  --db-orange: #f28c18;
+  --db-orange-dark: #c85f0a;
+  --db-yellow: #ffd447;
+
+  --db-blue: #1358a8;
+  --db-blue-dark: #0a2f66;
+
+  --db-red: #d92929;
+
+  --db-cream: #fff3d1;
+  --db-white: #fffdf5;
+
+  --db-text: #1d2433;
+  --db-border: #202020;
+}
+
 html,
 body {
   height: 100%;
@@ -11,7 +28,8 @@ body {
 
 body {
   font-family: Arial, Helvetica, sans-serif;
-  background-color: #f4f4f4;
+
+  background-color: #0b2347;
 }
 
 .layout {
@@ -28,86 +46,231 @@ canvas {
   background-color: black;
 }
 
+
+/* Barra lateral inspirada nas cores clássicas de Dragon Ball. */
 .sidebar {
   width: 300px;
   flex-shrink: 0;
 
   overflow-y: auto;
 
-  padding: 18px;
+  padding: 16px;
 
-  background-color: #f7eee4;
+  color: var(--db-text);
+
+  background:
+    linear-gradient(
+      180deg,
+      var(--db-orange) 0%,
+      #f6a323 45%,
+      var(--db-yellow) 100%
+    );
+
+  border-left: 5px solid var(--db-border);
 }
 
+
+/* Cabeçalho com aparência de uma pequena placa da cena. */
 .sidebar header {
-  margin-bottom: 18px;
+  margin-bottom: 16px;
+  padding: 14px;
+
+  text-align: center;
+
+  background-color: var(--db-blue);
+
+  border: 3px solid var(--db-border);
+  border-radius: 10px;
+
+  box-shadow: 4px 4px 0 var(--db-border);
+}
+
+.sidebar-icons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+
+  margin-bottom: 10px;
+}
+
+.sidebar-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 42px;
+  height: 42px;
+
+  border: 2px solid var(--db-border);
+  border-radius: 50%;
+
+  box-shadow: 2px 2px 0 var(--db-border);
+
+  font-weight: 900;
+}
+
+.icon-ball {
+  color: #b31717;
+
+  background:
+    radial-gradient(circle at 30% 30%, #ffe49a 0%, #ffae2b 45%, #f57e16 100%);
+
+  font-size: 1.3rem;
+}
+
+.icon-kanji {
+  color: var(--db-white);
+
+  background:
+    linear-gradient(180deg, #e44848 0%, #b71c1c 100%);
+
+  font-size: 1.2rem;
 }
 
 .sidebar h1 {
-  margin-top: 0;
-  margin-bottom: 6px;
+  margin: 0 0 5px;
+
+  color: var(--db-yellow);
+
+  font-size: 1.8rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+
+  text-transform: uppercase;
+
+  text-shadow:
+    2px 2px 0 var(--db-red),
+    3px 3px 0 var(--db-border);
 }
 
 .sidebar header p {
-  margin-top: 0;
-  margin-bottom: 0;
-}
+  margin: 0;
 
-.sidebar h2 {
-  margin-top: 0;
-  margin-bottom: 8px;
+  color: var(--db-white);
 
-  font-size: 1.05rem;
-}
-
-.sidebar p {
-  line-height: 1.35;
+  font-size: 0.86rem;
+  line-height: 1.3;
 }
 
 .sidebar section {
-  margin-bottom: 18px;
+  margin-bottom: 14px;
+  padding: 11px;
+
+  background-color: var(--db-cream);
+
+  border: 2px solid var(--db-border);
+  border-radius: 8px;
+
+  box-shadow: 3px 3px 0 rgba(32, 32, 32, 0.75);
+}
+
+.sidebar h2 {
+  margin: 0 0 8px;
+
+  color: var(--db-blue-dark);
+
+  font-size: 1rem;
+  font-weight: 900;
+
+  text-transform: uppercase;
+
+  border-bottom: 3px solid var(--db-orange);
+  padding-bottom: 5px;
+}
+
+.sidebar p {
+  line-height: 1.3;
 }
 
 .sidebar section p {
-  margin-top: 6px;
-  margin-bottom: 0;
+  margin: 6px 0 0;
+
+  font-size: 0.9rem;
+  font-weight: bold;
 }
 
+#pose-atual,
+#hora-atual {
+  color: var(--db-red);
+  font-weight: 900;
+}
+
+
+/* Os botões lembram controles de uma máquina/cápsula. */
 button {
   width: 100%;
 
   margin-bottom: 6px;
   padding: 8px 10px;
 
-  border: 1px solid #999;
+  color: var(--db-text);
+
+  border: 2px solid var(--db-border);
   border-radius: 6px;
 
-  background-color: #ffffff;
+  background-color: var(--db-white);
 
   font: inherit;
+  font-weight: bold;
 
   cursor: pointer;
+
+  box-shadow: 2px 2px 0 var(--db-border);
+
+  transition:
+    background-color 0.15s,
+    color 0.15s,
+    transform 0.1s,
+    box-shadow 0.1s;
+}
+
+button:hover:not(:disabled) {
+  background-color: var(--db-yellow);
+}
+
+button:active:not(:disabled) {
+  transform: translate(2px, 2px);
+
+  box-shadow: none;
 }
 
 button[aria-pressed="true"] {
   color: #ffffff;
 
-  background-color: #c83232;
-  border-color: #9f2020;
+  background-color: var(--db-red);
+  border-color: var(--db-border);
 }
 
 button:disabled {
   opacity: 0.5;
+
   cursor: not-allowed;
+
+  box-shadow: none;
 }
 
 details {
   margin-top: 10px;
+
+  padding: 10px;
+
+  background-color: var(--db-blue);
+
+  color: var(--db-white);
+
+  border: 2px solid var(--db-border);
+  border-radius: 8px;
+
+  box-shadow: 3px 3px 0 var(--db-border);
 }
 
 summary {
   cursor: pointer;
-  font-weight: bold;
+
+  color: var(--db-yellow);
+
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
 details ul {
@@ -117,16 +280,38 @@ details ul {
 
 details li {
   margin-bottom: 6px;
+
+  font-size: 0.85rem;
   line-height: 1.3;
 }
 
 kbd {
   padding: 2px 5px;
 
-  border: 1px solid #aaa;
+  color: var(--db-text);
+
+  border: 2px solid var(--db-border);
   border-radius: 4px;
 
-  background-color: #ffffff;
+  background-color: var(--db-yellow);
 
   font-family: monospace;
+  font-weight: bold;
+}
+
+
+/* Scroll da sidebar seguindo a mesma paleta. */
+.sidebar::-webkit-scrollbar {
+  width: 10px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background-color: var(--db-orange-dark);
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background-color: var(--db-blue);
+
+  border: 2px solid var(--db-orange-dark);
+  border-radius: 5px;
 }
