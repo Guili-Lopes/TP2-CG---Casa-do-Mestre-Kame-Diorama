@@ -17,39 +17,143 @@
 </head>
 
 <body>
-  <main>
-    <h1>Kame House</h1>
-
-    <p>
-      Diorama 3D da ilha do Mestre Kame desenvolvido com WebGL2.
-    </p>
-
+  <div class="layout">
     <canvas
       id="canvas"
       width="960"
       height="540"
     ></canvas>
 
-    <details>
-      <summary>Instruções</summary>
+    <aside class="sidebar">
+      <header>
+        <h1>Kame House</h1>
 
-      <p>
-        Use os controles da cena para movimentar a câmera e interagir
-        com o diorama.
-      </p>
+        <p>
+          Diorama 3D da ilha do Mestre Kame desenvolvido com WebGL2.
+        </p>
+      </header>
 
-      <ul>
-        <li>1 — Câmera automática</li>
-        <li>2 — Câmera orbital</li>
-        <li>3 — Câmera livre</li>
-        <li>P — Alternar pose do Goku</li>
-        <li>L — Liga/desliga iluminação</li>
-        <li>N — Liga/desliga neblina</li>
-        <li>T — Acelera o tempo</li>
-        <li>M — Liga/desliga o som</li>
-      </ul>
-    </details>
-  </main>
+      <section>
+        <h2>Câmera</h2>
+
+        <button
+          type="button"
+          data-action="camera"
+          data-camera="1"
+          aria-pressed="true"
+          disabled
+        >
+          Automática (1)
+        </button>
+
+        <button
+          type="button"
+          data-action="camera"
+          data-camera="2"
+          aria-pressed="false"
+          disabled
+        >
+          Orbital (2)
+        </button>
+
+        <button
+          type="button"
+          data-action="camera"
+          data-camera="3"
+          aria-pressed="false"
+          disabled
+        >
+          Livre (3)
+        </button>
+      </section>
+
+      <section>
+        <h2>Goku</h2>
+
+        <button
+          type="button"
+          data-action="nextPose"
+          disabled
+        >
+          Próxima pose (P)
+        </button>
+
+        <p>
+          Pose:
+          <span id="pose-atual">Em pé</span>
+        </p>
+      </section>
+
+      <section>
+        <h2>Cena</h2>
+
+        <button
+          type="button"
+          data-action="toggleLighting"
+          aria-pressed="true"
+          disabled
+        >
+          Iluminação (L)
+        </button>
+
+        <button
+          type="button"
+          data-action="toggleFog"
+          aria-pressed="false"
+          disabled
+        >
+          Neblina (N)
+        </button>
+
+        <button
+          type="button"
+          data-action="toggleSound"
+          aria-pressed="false"
+          disabled
+        >
+          Som (M)
+        </button>
+      </section>
+
+      <section>
+        <h2>Tempo</h2>
+
+        <p>
+          Hora:
+          <span id="hora-atual">12:00</span>
+        </p>
+
+        <button
+          type="button"
+          data-action="skipToNight"
+          disabled
+        >
+          Avançar até a noite (T)
+        </button>
+      </section>
+
+      <details>
+        <summary>Controles</summary>
+
+        <ul>
+          <li><kbd>1</kbd> — Câmera automática</li>
+          <li><kbd>2</kbd> — Câmera orbital</li>
+          <li><kbd>3</kbd> — Câmera livre</li>
+          <li><kbd>P</kbd> — Alternar pose do Goku</li>
+          <li><kbd>L</kbd> — Liga/desliga iluminação</li>
+          <li><kbd>N</kbd> — Liga/desliga neblina</li>
+          <li><kbd>M</kbd> — Liga/desliga o som</li>
+          <li><kbd>T</kbd> — Avançar até a noite</li>
+          <li>Mouse: arraste para orbitar (câmera 2)</li>
+          <li>Mouse: scroll para zoom (câmera 1)</li>
+          <li>
+            <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>
+            + mouse (câmera 3)
+          </li>
+        </ul>
+      </details>
+    </aside>
+  </div>
 
   <script type="module" src="./src/app.js"></script>
 </body>
