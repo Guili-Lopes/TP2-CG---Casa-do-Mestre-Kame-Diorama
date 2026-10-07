@@ -18,9 +18,5 @@ void main() {
 
     v_worldPos = vec3(u_model * vec4(a_coords, 1.0));
 
-    gl_Position =
-        u_projection *
-        u_view *
-        u_model *
-        vec4(a_coords, 1.0);
+    gl_Position = u_projection * u_view * u_model * vec4(a_coords, 1.0);
 }

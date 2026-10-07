@@ -1,11 +1,8 @@
-import { setupWebGL } from "./utils/shader.js";
+import { setupWebGL } from "./utils/shaders.js";
 
 import { initialize, update, render, } from "./main.js";
 
-
-const canvas = document.querySelector("#canvas");
-
-const gl = setupWebGL(canvas);
+const gl = setupWebGL("#canvas", {alpha: false});
 
 await initialize(gl);
 

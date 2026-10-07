@@ -13,8 +13,7 @@ uniform vec3 u_lightDirection;
 vec3 calculateLighting(vec3 normal, vec3 color) {
     vec3 lightDir = normalize(u_lightDirection);
 
-    vec3 diffuse =
-        max(dot(normal, lightDir), 0.0) * color;
+    vec3 diffuse = max(dot(normal, lightDir), 0.0) * color;
 
     vec3 ambient = 0.3 * color;
 

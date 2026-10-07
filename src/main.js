@@ -1,10 +1,6 @@
-import {
-  createProgramFromFiles,
-} from "./utils/shader.js";
+import { createProgramFromFiles, } from "./utils/shaders.js";
 
-import {
-  m4,
-} from "./twgl.full.module.js";
+import { m4, } from "./twgl.full.module.js";
 
 
 const state = {
@@ -22,8 +18,8 @@ const state = {
 async function initialize(gl) {
   state.program.id = await createProgramFromFiles(
     gl,
-    "./shaders/vertex.glsl",
-    "./shaders/fragment.glsl"
+    "./src/shaders/vertex.glsl",
+    "./src/shaders/fragment.glsl"
   );
 
 
