@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Kame House — WebGL</title>
+
+  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./utils/errors.css">
+
+  <script src="./utils/errors.js"></script>
+</head>
+
+<body>
+  <main>
+    <h1>Kame House</h1>
+
+    <p>
+      Diorama 3D da ilha do Mestre Kame desenvolvido com WebGL2.
+    </p>
+
+    <canvas
+      id="canvas"
+      width="960"
+      height="540"
+    ></canvas>
+
+    <details>
+      <summary>Instruções</summary>
+
+      <p>
+        Use os controles da cena para movimentar a câmera e interagir
+        com o diorama.
+      </p>
+
+      <ul>
+        <li>1 — Câmera automática</li>
+        <li>2 — Câmera orbital</li>
+        <li>3 — Câmera livre</li>
+        <li>P — Alternar pose do Goku</li>
+        <li>L — Liga/desliga iluminação</li>
+        <li>N — Liga/desliga neblina</li>
+        <li>T — Acelera o tempo</li>
+        <li>M — Liga/desliga o som</li>
+      </ul>
+    </details>
+  </main>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
