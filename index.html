@@ -25,34 +25,26 @@
     ></canvas>
 
     <aside class="sidebar">
-      <header>
-        <div class="sidebar-icons">
-          <span
-            class="sidebar-icon icon-ball"
-            title="Esfera do dragão"
-            aria-label="Esfera do dragão"
-          >
-            ★
-          </span>
-
-          <span
-            class="sidebar-icon icon-kanji"
-            title="Kanji da tartaruga"
-            aria-label="Kanji da tartaruga"
-          >
-            亀
-          </span>
+      <header class="sidebar-header">
+        <div class="kame-symbol">
+          亀
         </div>
 
-        <h1>Kame House</h1>
+        <div>
+          <h1>Kame House</h1>
 
-        <p>
-          Diorama 3D da ilha do Mestre Kame.
-        </p>
+          <p>
+            Diorama 3D da ilha do Mestre Kame
+          </p>
+        </div>
       </header>
 
+
       <section>
-        <h2>Câmera</h2>
+        <h2>
+          <span class="section-icon cloud-icon">☁</span>
+          Câmera
+        </h2>
 
         <button
           type="button"
@@ -85,13 +77,16 @@
         </button>
       </section>
 
+
       <section>
-        <h2>Goku</h2>
+        <h2>
+          <span class="section-icon kanji-icon">亀</span>
+          Goku
+        </h2>
 
         <button
           type="button"
-          data-action="nextPose"
-          disabled
+          data-action="proximaPose"
         >
           Próxima pose (P)
         </button>
@@ -102,12 +97,16 @@
         </p>
       </section>
 
+
       <section>
-        <h2>Cena</h2>
+        <h2>
+          <span class="section-icon dragon-ball-icon">★</span>
+          Cena
+        </h2>
 
         <button
           type="button"
-          data-action="toggleLighting"
+          data-action="alternarIluminacao"
           aria-pressed="true"
           disabled
         >
@@ -116,7 +115,7 @@
 
         <button
           type="button"
-          data-action="toggleFog"
+          data-action="alternarNeblina"
           aria-pressed="false"
           disabled
         >
@@ -125,7 +124,7 @@
 
         <button
           type="button"
-          data-action="toggleSound"
+          data-action="alternarSom"
           aria-pressed="false"
           disabled
         >
@@ -133,8 +132,12 @@
         </button>
       </section>
 
+
       <section>
-        <h2>Tempo</h2>
+        <h2>
+          <span class="section-icon sun-icon">☀</span>
+          Tempo
+        </h2>
 
         <p>
           Hora:
@@ -143,15 +146,20 @@
 
         <button
           type="button"
-          data-action="skipToNight"
-          disabled
+          data-action="avancarParaNoite"
         >
           Avançar até a noite (T)
         </button>
       </section>
 
+
       <details>
-        <summary>Controles</summary>
+        <summary>
+          <span class="summary-content">
+            <span class="dragon-ball-small">★</span>
+            Controles
+          </span>
+        </summary>
 
         <ul>
           <li><kbd>1</kbd> — Câmera automática</li>

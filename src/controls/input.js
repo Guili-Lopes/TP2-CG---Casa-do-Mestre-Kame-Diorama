@@ -4,13 +4,13 @@ function initInput(actions) {
     "2": () => actions.camera(2),
     "3": () => actions.camera(3),
 
-    "p": () => actions.nextPose(),
+    "p": () => actions.proximaPose(),
 
-    "l": () => actions.toggleLighting(),
-    "n": () => actions.toggleFog(),
-    "m": () => actions.toggleSound(),
+    "l": () => actions.alternarIluminacao(),
+    "n": () => actions.alternarNeblina(),
+    "m": () => actions.alternarSom(),
 
-    "t": () => actions.skipToNight(),
+    "t": () => actions.avancarParaNoite(),
   };
 
   window.addEventListener("keydown", (event) => {
@@ -29,5 +29,6 @@ function initInput(actions) {
     action();
   });
 }
+
 
 export { initInput, };

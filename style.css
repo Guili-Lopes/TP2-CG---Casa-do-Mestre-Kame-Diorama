@@ -3,20 +3,22 @@
 }
 
 :root {
-  --db-orange: #f28c18;
-  --db-orange-dark: #c85f0a;
-  --db-yellow: #ffd447;
+  --orange: #f7931e;
+  --orange-dark: #d86708;
 
-  --db-blue: #1358a8;
-  --db-blue-dark: #0a2f66;
+  --yellow: #ffd329;
 
-  --db-red: #d92929;
+  --blue: #073b7a;
+  --blue-light: #165da8;
+  --blue-dark: #052853;
 
-  --db-cream: #fff3d1;
-  --db-white: #fffdf5;
+  --red: #e53627;
 
-  --db-text: #1d2433;
-  --db-border: #202020;
+  --cream: #fff2cc;
+  --cream-light: #fff9e9;
+
+  --brown: #422b18;
+  --shadow: #543718;
 }
 
 html,
@@ -29,7 +31,7 @@ body {
 body {
   font-family: Arial, Helvetica, sans-serif;
 
-  background-color: #0b2347;
+  background-color: #111;
 }
 
 .layout {
@@ -41,236 +43,433 @@ canvas {
   flex: 1;
   min-width: 0;
   height: 100%;
+
   display: block;
 
   background-color: black;
 }
 
 
-/* Barra lateral inspirada nas cores clássicas de Dragon Ball. */
+/* Fundo inspirado nas cores do uniforme do Goku. */
 .sidebar {
-  width: 300px;
+  width: 320px;
   flex-shrink: 0;
 
   overflow-y: auto;
 
-  padding: 16px;
+  padding: 14px;
 
-  color: var(--db-text);
+  color: var(--blue);
+
+  background:
+    radial-gradient(
+      circle at 20px 20px,
+      rgba(255, 255, 255, 0.09) 2px,
+      transparent 3px
+    ),
+    linear-gradient(
+      180deg,
+      var(--orange) 0%,
+      #ffa51e 55%,
+      var(--yellow) 100%
+    );
+
+  background-size:
+    40px 40px,
+    100% 100%;
+
+  border-left: 4px solid var(--brown);
+}
+
+
+/* Cabeçalho principal da interface. */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  margin-bottom: 14px;
+  padding: 12px;
 
   background:
     linear-gradient(
-      180deg,
-      var(--db-orange) 0%,
-      #f6a323 45%,
-      var(--db-yellow) 100%
+      135deg,
+      var(--blue-light),
+      var(--blue)
     );
 
-  border-left: 5px solid var(--db-border);
+  border: 3px solid var(--brown);
+  border-radius: 12px;
+
+  box-shadow: 4px 4px 0 var(--shadow);
 }
 
+.kame-symbol {
+  width: 58px;
+  height: 58px;
 
-/* Cabeçalho com aparência de uma pequena placa da cena. */
-.sidebar header {
-  margin-bottom: 16px;
-  padding: 14px;
+  flex-shrink: 0;
 
-  text-align: center;
-
-  background-color: var(--db-blue);
-
-  border: 3px solid var(--db-border);
-  border-radius: 10px;
-
-  box-shadow: 4px 4px 0 var(--db-border);
-}
-
-.sidebar-icons {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-
-  margin-bottom: 10px;
-}
-
-.sidebar-icon {
   display: flex;
   align-items: center;
   justify-content: center;
 
-  width: 42px;
-  height: 42px;
+  color: var(--brown);
 
-  border: 2px solid var(--db-border);
+  background-color: white;
+
+  border: 4px solid var(--brown);
   border-radius: 50%;
 
-  box-shadow: 2px 2px 0 var(--db-border);
-
+  font-family: serif;
+  font-size: 2rem;
   font-weight: 900;
-}
 
-.icon-ball {
-  color: #b31717;
-
-  background:
-    radial-gradient(circle at 30% 30%, #ffe49a 0%, #ffae2b 45%, #f57e16 100%);
-
-  font-size: 1.3rem;
-}
-
-.icon-kanji {
-  color: var(--db-white);
-
-  background:
-    linear-gradient(180deg, #e44848 0%, #b71c1c 100%);
-
-  font-size: 1.2rem;
+  box-shadow:
+    inset 0 0 0 3px var(--orange),
+    2px 2px 0 #111;
 }
 
 .sidebar h1 {
-  margin: 0 0 5px;
+  margin: 0 0 4px;
 
-  color: var(--db-yellow);
+  color: var(--yellow);
 
-  font-size: 1.8rem;
+  font-size: 1.55rem;
   font-weight: 900;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
 
   text-transform: uppercase;
 
   text-shadow:
-    2px 2px 0 var(--db-red),
-    3px 3px 0 var(--db-border);
+    2px 2px 0 var(--red),
+    3px 3px 0 #111;
 }
 
-.sidebar header p {
+.sidebar-header p {
   margin: 0;
 
-  color: var(--db-white);
+  color: white;
 
-  font-size: 0.86rem;
+  font-size: 0.76rem;
   line-height: 1.3;
 }
 
+
+/* Cards que dividem cada grupo de controles. */
 .sidebar section {
+  position: relative;
+
   margin-bottom: 14px;
-  padding: 11px;
+  padding: 12px;
 
-  background-color: var(--db-cream);
+  background:
+    linear-gradient(
+      180deg,
+      var(--cream-light),
+      var(--cream)
+    );
 
-  border: 2px solid var(--db-border);
-  border-radius: 8px;
+  border: 2px solid var(--brown);
+  border-radius: 10px;
 
-  box-shadow: 3px 3px 0 rgba(32, 32, 32, 0.75);
+  box-shadow: 4px 5px 0 var(--shadow);
 }
 
 .sidebar h2 {
-  margin: 0 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 
-  color: var(--db-blue-dark);
+  margin: 0 0 10px;
+  padding-bottom: 7px;
 
-  font-size: 1rem;
+  color: var(--blue);
+
+  border-bottom: 3px solid var(--orange);
+
+  font-size: 1.05rem;
   font-weight: 900;
+  letter-spacing: 0.5px;
 
   text-transform: uppercase;
-
-  border-bottom: 3px solid var(--db-orange);
-  padding-bottom: 5px;
 }
 
-.sidebar p {
-  line-height: 1.3;
+
+/* Ícones temáticos usados nos títulos das seções. */
+.section-icon {
+  width: 31px;
+  height: 31px;
+
+  flex-shrink: 0;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 2px solid var(--brown);
+  border-radius: 50%;
+
+  font-size: 1rem;
+  line-height: 1;
 }
 
-.sidebar section p {
-  margin: 6px 0 0;
+.cloud-icon {
+  width: 38px;
 
-  font-size: 0.9rem;
-  font-weight: bold;
+  color: var(--blue);
+
+  background-color: var(--yellow);
+
+  border-radius: 50% 50% 45% 45%;
 }
 
-#pose-atual,
-#hora-atual {
-  color: var(--db-red);
+.kanji-icon {
+  color: var(--brown);
+
+  background-color: white;
+
+  font-family: serif;
   font-weight: 900;
+
+  box-shadow:
+    inset 0 0 0 2px var(--orange);
+}
+
+.dragon-ball-icon {
+  color: #d51e1e;
+
+  background:
+    radial-gradient(
+      circle at 35% 25%,
+      #fff7a2 0%,
+      #ffc22d 22%,
+      #f28c0d 65%,
+      #df6200 100%
+    );
+
+  border-color: #9b4300;
+
+  box-shadow:
+    inset -3px -3px 5px rgba(118, 43, 0, 0.3);
+}
+
+.sun-icon {
+  color: #f47500;
+
+  background-color: #fff6ab;
 }
 
 
-/* Os botões lembram controles de uma máquina/cápsula. */
+/* Botões azuis com efeito físico de pressão. */
 button {
   width: 100%;
 
-  margin-bottom: 6px;
-  padding: 8px 10px;
+  margin-bottom: 7px;
+  padding: 9px 10px;
 
-  color: var(--db-text);
+  color: var(--yellow);
 
-  border: 2px solid var(--db-border);
-  border-radius: 6px;
+  background:
+    linear-gradient(
+      180deg,
+      var(--blue-light),
+      var(--blue)
+    );
 
-  background-color: var(--db-white);
+  border: 2px solid var(--brown);
+  border-radius: 7px;
 
   font: inherit;
-  font-weight: bold;
+  font-weight: 700;
 
   cursor: pointer;
 
-  box-shadow: 2px 2px 0 var(--db-border);
+  box-shadow:
+    0 4px 0 var(--blue-dark),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
 
   transition:
-    background-color 0.15s,
-    color 0.15s,
-    transform 0.1s,
-    box-shadow 0.1s;
+    transform 0.08s,
+    box-shadow 0.08s,
+    filter 0.15s;
 }
 
 button:hover:not(:disabled) {
-  background-color: var(--db-yellow);
+  filter: brightness(1.12);
 }
 
 button:active:not(:disabled) {
-  transform: translate(2px, 2px);
+  transform: translateY(4px);
 
-  box-shadow: none;
+  box-shadow:
+    0 0 0 var(--blue-dark),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
+
+/* Estado selecionado usa laranja em vez do antigo rosa. */
 button[aria-pressed="true"] {
-  color: #ffffff;
+  color: var(--blue-dark);
 
-  background-color: var(--db-red);
-  border-color: var(--db-border);
+  background:
+    linear-gradient(
+      180deg,
+      #ffd84d,
+      var(--orange)
+    );
+
+  border-color: var(--brown);
+
+  box-shadow:
+    0 4px 0 var(--orange-dark),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
+button[aria-pressed="true"]:active:not(:disabled) {
+  transform: translateY(4px);
+
+  box-shadow:
+    0 0 0 var(--orange-dark),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+
+/* Funcionalidades ainda indisponíveis permanecem visualmente neutras. */
 button:disabled {
-  opacity: 0.5;
+  color: #888;
+
+  background:
+    linear-gradient(
+      180deg,
+      #fffdf6,
+      #eee7d4
+    );
+
+  border-color: #9d9586;
+
+  opacity: 1;
 
   cursor: not-allowed;
 
   box-shadow: none;
 }
 
+/* A opção ativa continua visível mesmo antes da câmera ser habilitada. */
+button[aria-pressed="true"]:disabled {
+  color: var(--blue-dark);
+
+  background:
+    linear-gradient(
+      180deg,
+      #ffd84d,
+      var(--orange)
+    );
+
+  border-color: var(--brown);
+}
+
+
+.sidebar section p {
+  margin: 8px 0 0;
+
+  color: #151515;
+
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+#pose-atual,
+#hora-atual {
+  color: var(--red);
+
+  font-weight: 900;
+}
+
+
+/* Área expansível com os controles do projeto. */
 details {
-  margin-top: 10px;
+  margin-top: 14px;
+  margin-bottom: 5px;
 
-  padding: 10px;
+  padding: 11px;
 
-  background-color: var(--db-blue);
+  color: white;
 
-  color: var(--db-white);
+  background:
+    linear-gradient(
+      135deg,
+      var(--blue-light),
+      var(--blue)
+    );
 
-  border: 2px solid var(--db-border);
-  border-radius: 8px;
+  border: 3px solid var(--brown);
+  border-radius: 10px;
 
-  box-shadow: 3px 3px 0 var(--db-border);
+  box-shadow: 4px 5px 0 var(--shadow);
 }
 
 summary {
-  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 
-  color: var(--db-yellow);
+  color: var(--yellow);
+
+  cursor: pointer;
 
   font-weight: 900;
   text-transform: uppercase;
+}
+
+summary::-webkit-details-marker {
+  display: none;
+}
+
+/* A seta gira quando a lista de controles é aberta. */
+summary::after {
+  content: "▼";
+
+  color: var(--yellow);
+
+  font-size: 0.9rem;
+
+  transition: transform 0.2s ease;
+}
+
+details[open] summary::after {
+  transform: rotate(180deg);
+}
+
+.summary-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dragon-ball-small {
+  width: 25px;
+  height: 25px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #d71c1c;
+
+  background:
+    radial-gradient(
+      circle at 35% 25%,
+      #fff6a1,
+      #ffa719 45%,
+      #e97000
+    );
+
+  border: 2px solid #9e4300;
+  border-radius: 50%;
+
+  font-size: 0.7rem;
 }
 
 details ul {
@@ -279,39 +478,47 @@ details ul {
 }
 
 details li {
-  margin-bottom: 6px;
+  margin-bottom: 7px;
 
-  font-size: 0.85rem;
-  line-height: 1.3;
+  font-size: 0.82rem;
+  line-height: 1.35;
 }
 
 kbd {
+  display: inline-block;
+
+  min-width: 23px;
+
   padding: 2px 5px;
 
-  color: var(--db-text);
+  color: var(--blue);
 
-  border: 2px solid var(--db-border);
+  background-color: var(--yellow);
+
+  border: 2px solid var(--brown);
   border-radius: 4px;
 
-  background-color: var(--db-yellow);
-
   font-family: monospace;
-  font-weight: bold;
+  font-weight: 900;
+
+  text-align: center;
+
+  box-shadow: 1px 1px 0 var(--brown);
 }
 
 
-/* Scroll da sidebar seguindo a mesma paleta. */
+/* Scroll seguindo a mesma paleta da interface. */
 .sidebar::-webkit-scrollbar {
-  width: 10px;
+  width: 9px;
 }
 
 .sidebar::-webkit-scrollbar-track {
-  background-color: var(--db-orange-dark);
+  background-color: var(--orange-dark);
 }
 
 .sidebar::-webkit-scrollbar-thumb {
-  background-color: var(--db-blue);
+  background-color: var(--blue);
 
-  border: 2px solid var(--db-orange-dark);
-  border-radius: 5px;
+  border: 2px solid var(--orange-dark);
+  border-radius: 10px;
 }

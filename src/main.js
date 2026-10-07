@@ -68,44 +68,59 @@ const actions = {
     console.log(`Câmera alterada para ${camera}`);
   },
 
-  nextPose() {
-    state.poseIndex = (state.poseIndex + 1) % state.poses.length;
+  proximaPose() {
+    state.poseIndex =
+      (state.poseIndex + 1) %
+      state.poses.length;
 
     updateSidebar(state);
 
-    console.log(`Pose alterada para ${state.poses[state.poseIndex]}`);
+    console.log(
+      `Pose alterada para ${state.poses[state.poseIndex]}`
+    );
   },
 
-  toggleLighting() {
-    state.lightingEnabled = !state.lightingEnabled;
+  alternarIluminacao() {
+    state.lightingEnabled =
+      !state.lightingEnabled;
 
     updateSidebar(state);
 
-    console.log(`Iluminação: ${state.lightingEnabled}`);
+    console.log(
+      `Iluminação: ${state.lightingEnabled}`
+    );
   },
 
-  toggleFog() {
-    state.fogEnabled = !state.fogEnabled;
+  alternarNeblina() {
+    state.fogEnabled =
+      !state.fogEnabled;
 
     updateSidebar(state);
 
-    console.log(`Neblina: ${state.fogEnabled}`);
+    console.log(
+      `Neblina: ${state.fogEnabled}`
+    );
   },
 
-  toggleSound() {
-    state.soundEnabled = !state.soundEnabled;
+  alternarSom() {
+    state.soundEnabled =
+      !state.soundEnabled;
 
     updateSidebar(state);
 
-    console.log(`Som: ${state.soundEnabled}`);
+    console.log(
+      `Som: ${state.soundEnabled}`
+    );
   },
 
-  skipToNight() {
+  avancarParaNoite() {
     state.timeOfDay = 20;
 
     updateSidebar(state);
 
-    console.log(`Hora alterada para ${state.timeOfDay}`);
+    console.log(
+      `Hora alterada para ${state.timeOfDay}`
+    );
   },
 };
 
