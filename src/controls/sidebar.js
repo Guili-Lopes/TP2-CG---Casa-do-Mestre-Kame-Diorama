@@ -22,7 +22,8 @@ function initSidebar(actions) {
   });
 }
 
-function formatarHora(timeOfDay) {
+
+function formatTime(timeOfDay) {
   const normalizedTime = ((timeOfDay % 24) + 24) % 24;
 
   let hours = Math.floor(normalizedTime);
@@ -38,6 +39,7 @@ function formatarHora(timeOfDay) {
 }
 
 function updateSidebar(state) {
+  // Atualiza a câmera selecionada
   const cameraButtons = document.querySelectorAll('button[data-action="camera"]');
 
   cameraButtons.forEach((button) => {
@@ -49,45 +51,36 @@ function updateSidebar(state) {
     );
   });
 
-  const lightingButton = document.querySelector('button[data-action="alternarIluminacao"]');
+  // Atualiza os estados da iluminação, neblina e som
+  const lightingButton = document.querySelector('button[data-action="toggleLighting"]');
 
-  const fogButton = document.querySelector('button[data-action="alternarNeblina"]');
+  const fogButton = document.querySelector('button[data-action="toggleFog"]');
 
-  const soundButton = document.querySelector('button[data-action="alternarSom"]');
+  const soundButton = document.querySelector('button[data-action="toggleSound"]');
 
+  lightingButton.setAttribute(
+    "aria-pressed",
+    state.lightingEnabled
+  );
 
-  if (lightingButton) {
-    lightingButton.setAttribute(
-      "aria-pressed",
-      state.lightingEnabled
-    );
-  }
+  fogButton.setAttribute(
+    "aria-pressed",
+    state.fogEnabled
+  );
 
-  if (fogButton) {
-    fogButton.setAttribute(
-      "aria-pressed",
-      state.fogEnabled
-    );
-  }
+  soundButton.setAttribute(
+    "aria-pressed",
+    state.soundEnabled
+  );
 
-  if (soundButton) {
-    soundButton.setAttribute(
-      "aria-pressed",
-      state.soundEnabled
-    );
-  }
+  // Atualiza as informações exibidas na barra
+  const currentPose = document.querySelector("#current-pose");
 
-  const poseAtual = document.querySelector("#pose-atual");
+  const currentTime = document.querySelector("#current-time");
 
-  const horaAtual = document.querySelector("#hora-atual");
+  currentPose.textContent = state.poses[state.poseIndex];
 
-  if (poseAtual) {
-    poseAtual.textContent = state.poses[state.poseIndex];
-  }
-
-  if (horaAtual) {
-    horaAtual.textContent = formatarHora(state.timeOfDay);
-  }
+  currentTime.textContent = formatTime(state.timeOfDay);
 }
 
 export { initSidebar, updateSidebar, };

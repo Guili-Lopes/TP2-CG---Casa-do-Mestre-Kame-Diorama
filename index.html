@@ -10,23 +10,31 @@
 
   <title>Kame House — WebGL</title>
 
+  <!-- Estilos da página e das mensagens de erro -->
   <link rel="stylesheet" href="./style.css">
   <link rel="stylesheet" href="./src/utils/errors.css">
 
+  <!-- Carrega o tratamento de erros -->
   <script src="./src/utils/errors.js"></script>
 </head>
 
 <body>
+  <!-- Agrupa a cena 3D e o painel lateral -->
   <div class="layout">
+    <!-- Área onde o WebGL desenha a cena -->
     <canvas
       id="canvas"
       width="960"
       height="540"
     ></canvas>
 
+    <!-- Painel com informações e controles da cena -->
     <aside class="sidebar">
       <header class="sidebar-header">
-        <div class="kame-symbol">
+        <div
+          class="kame-symbol"
+          aria-hidden="true"
+        >
           亀
         </div>
 
@@ -34,15 +42,22 @@
           <h1>Kame House</h1>
 
           <p>
-            Diorama 3D da ilha do Mestre Kame
+            Diorama 3D da ilha do Mestre Kame.
           </p>
         </div>
       </header>
 
 
+      <!-- Seleção do modo de câmera -->
       <section>
         <h2>
-          <span class="section-icon cloud-icon">☁</span>
+          <span
+            class="section-icon cloud-icon"
+            aria-hidden="true"
+          >
+            ☁
+          </span>
+
           Câmera
         </h2>
 
@@ -77,36 +92,49 @@
         </button>
       </section>
 
-
+      <!-- Controle e exibição da pose atual do Goku -->
       <section>
         <h2>
-          <span class="section-icon kanji-icon">亀</span>
+          <span
+            class="section-icon kanji-icon"
+            aria-hidden="true"
+          >
+            亀
+          </span>
+
           Goku
         </h2>
 
         <button
-          type="button"
-          data-action="proximaPose"
+            type="button"
+            data-action="nextPose"
+            disabled
         >
-          Próxima pose (P)
+            Próxima pose (P)
         </button>
 
         <p>
-          Pose:
-          <span id="pose-atual">Em pé</span>
+            Pose:
+            <span id="current-pose">Em pé</span>
         </p>
       </section>
 
-
+      <!-- Controles de iluminação, neblina e som -->
       <section>
         <h2>
-          <span class="section-icon dragon-ball-icon">★</span>
+          <span
+            class="section-icon dragon-ball-icon"
+            aria-hidden="true"
+          >
+            ★
+          </span>
+
           Cena
         </h2>
 
         <button
           type="button"
-          data-action="alternarIluminacao"
+          data-action="toggleLighting"
           aria-pressed="true"
           disabled
         >
@@ -115,7 +143,7 @@
 
         <button
           type="button"
-          data-action="alternarNeblina"
+          data-action="toggleFog"
           aria-pressed="false"
           disabled
         >
@@ -124,7 +152,7 @@
 
         <button
           type="button"
-          data-action="alternarSom"
+          data-action="toggleSound"
           aria-pressed="false"
           disabled
         >
@@ -132,31 +160,45 @@
         </button>
       </section>
 
-
-      <section>
+      <!-- Exibe a hora da cena e permite avançar até a noite -->
+      <section class="time-section">
         <h2>
-          <span class="section-icon sun-icon">☀</span>
+          <span
+            class="section-icon sun-icon"
+            aria-hidden="true"
+          >
+            ☀
+          </span>
+
           Tempo
         </h2>
 
         <p>
-          Hora:
-          <span id="hora-atual">12:00</span>
+            Hora:
+            <span id="current-time">12:00</span>
         </p>
 
         <button
-          type="button"
-          data-action="avancarParaNoite"
+            type="button"
+            data-action="skipToNight"
+            disabled
         >
-          Avançar até a noite (T)
+            Avançar até a noite (T)
         </button>
       </section>
 
 
+      <!-- Lista expansível com os comandos de teclado e mouse -->
       <details>
         <summary>
           <span class="summary-content">
-            <span class="dragon-ball-small">★</span>
+            <span
+              class="dragon-ball-small"
+              aria-hidden="true"
+            >
+              ★
+            </span>
+
             Controles
           </span>
         </summary>
@@ -181,6 +223,7 @@
     </aside>
   </div>
 
+  <!-- Carrega o módulo principal -->
   <script type="module" src="./src/app.js"></script>
 </body>
 </html>
