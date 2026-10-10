@@ -1,8 +1,8 @@
 import { createProgramFromFiles, } from "./utils/shaders.js";
 
-import { m4, primitives, resizeCanvasToDisplaySize, } from "./twgl.full.module.js";
+import { m4, resizeCanvasToDisplaySize, } from "./twgl.full.module.js";
 
-import { createGeometry, } from "./utils/geometry.js";
+import { createSceneGeometries, drawGeometry, } from "./utils/geometry.js";
 
 import { initSidebar, updateSidebar, } from "./controls/sidebar.js";
 
@@ -27,7 +27,7 @@ const state = {
     dirty: true,
   },
 
-   // Dados iniciais da câmera automática
+  // Dados iniciais da câmera automática
   camera: {
     distance: 25,
     elevation: Math.PI / 4,
@@ -37,10 +37,8 @@ const state = {
     up: [0, 1, 0],
   },
 
-  testSphere: {
-    geometry: null,
-    color: [1.0, 0.6, 0.1],
-  },
+  // Geometrias compartilhadas pelos objetos da cena
+  geometries: null,
 
   activeCamera: 1,
 
@@ -149,6 +147,29 @@ function getCameraPosition() {
   ];
 }
 
+
+// Desenha qualquer geometria aplicando sua matriz de modelo e cor
+function drawShape(gl, geometryName, modelMatrix, color) {
+  const locations = state.program.locations;
+
+  gl.uniformMatrix4fv(
+    locations.u_model,
+    false,
+    modelMatrix
+  );
+
+  gl.uniform3fv(
+    locations.u_color,
+    color
+  );
+
+  drawGeometry(
+    gl,
+    state.geometries[geometryName]
+  );
+}
+
+
 async function initialize(gl) {
   state.program.id = await createProgramFromFiles(
     gl,
@@ -210,17 +231,10 @@ async function initialize(gl) {
     state.light.direction
   );
 
-  // Esfera temporária usada para validar câmera, projeção e iluminação
-  const sphereArrays = primitives.createSphereVertices(
-    2,
-    32,
-    16
-  );
-
-  state.testSphere.geometry = createGeometry(
+  // Cria os VAOs das seis primitivas uma única vez
+  state.geometries = createSceneGeometries(
     gl,
-    state.program.locations,
-    sphereArrays
+    state.program.locations
   );
 
   gl.clearColor(
@@ -295,30 +309,68 @@ function render(gl) {
     viewMatrix
   );
 
-  gl.bindVertexArray(state.testSphere.geometry.vao);
 
-  // A esfera permanece na origem, portanto sua model é a identidade
-  const modelMatrix = m4.identity();
+  // Galeria temporária das seis geometrias, posicionadas lado a lado
 
-  gl.uniformMatrix4fv(
-    state.program.locations.u_model,
-    false,
-    modelMatrix
+  // Disco verde no plano XZ
+  drawShape(
+    gl,
+    "disc",
+    m4.scale(
+      m4.translation([-7.5, 0, 0]),
+      [1.2, 1, 1.2]
+    ),
+    [0.2, 0.75, 0.3]
   );
 
-  gl.uniform3fv(
-    state.program.locations.u_color,
-    state.testSphere.color
+  // Hemisfério inferior laranja, com a base arredondada no chão
+  drawShape(
+    gl,
+    "lowerHemisphere",
+    m4.translation([-4.5, 1, 0]),
+    [1.0, 0.5, 0.1]
   );
 
-  gl.drawElements(
-    gl.TRIANGLES,
-    state.testSphere.geometry.indexCount,
-    gl.UNSIGNED_SHORT,
-    0
+  // Esfera amarela
+  drawShape(
+    gl,
+    "sphere",
+    m4.translation([-1.5, 1, 0]),
+    [1.0, 0.85, 0.1]
   );
 
-  gl.bindVertexArray(null);
+  // Cilindro azul, com a escala aumentando sua altura
+  drawShape(
+    gl,
+    "cylinder",
+    m4.scale(
+      m4.translation([1.5, 0.8, 0]),
+      [1.4, 1.6, 1.4]
+    ),
+    [0.1, 0.45, 0.9]
+  );
+
+  // Cone vermelho, apoiado no chão
+  drawShape(
+    gl,
+    "cone",
+    m4.scale(
+      m4.translation([4.5, 0.8, 0]),
+      [1.6, 1.6, 1.6]
+    ),
+    [0.9, 0.2, 0.15]
+  );
+
+  // Cubo roxo
+  drawShape(
+    gl,
+    "cube",
+    m4.scale(
+      m4.translation([7.5, 0.75, 0]),
+      [1.5, 1.5, 1.5]
+    ),
+    [0.55, 0.3, 0.85]
+  );
 }
 
 export { initialize, update, render, };
