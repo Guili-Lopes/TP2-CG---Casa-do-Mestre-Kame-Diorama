@@ -49,25 +49,41 @@ function createGeometry(gl, locations, arrays) {
     2
   );
 
-  // O buffer de índices precisa ser vinculado enquanto o VAO está ativo
-  const indexBuffer = gl.createBuffer();
+  const indexed = arrays.indices !== undefined && arrays.indices !== null;
 
-  gl.bindBuffer(
-    gl.ELEMENT_ARRAY_BUFFER,
-    indexBuffer
-  );
+  let indexCount = 0;
+  let indexType = null;
 
-  gl.bufferData(
-    gl.ELEMENT_ARRAY_BUFFER,
-    arrays.indices,
-    gl.STATIC_DRAW
-  );
+  if (indexed) {
+    // Cria o IBO apenas para geometrias indexadas
+    const indexBuffer = gl.createBuffer();
+
+    gl.bindBuffer(
+      gl.ELEMENT_ARRAY_BUFFER,
+      indexBuffer
+    );
+
+    gl.bufferData(
+      gl.ELEMENT_ARRAY_BUFFER,
+      arrays.indices,
+      gl.STATIC_DRAW
+    );
+
+    indexCount = arrays.indices.length;
+
+    indexType = arrays.indices instanceof Uint32Array
+      ? gl.UNSIGNED_INT
+      : gl.UNSIGNED_SHORT;
+  }
 
   gl.bindVertexArray(null);
 
   return {
     vao: vao,
-    indexCount: arrays.indices.length,
+    indexed: indexed,
+    indexCount: indexCount,
+    indexType: indexType,
+    vertexCount: arrays.position.length / 3,
   };
 }
 
@@ -105,16 +121,24 @@ function createSceneGeometries(gl, locations) {
   };
 }
 
-// Desenha uma geometria utilizando seu VAO e buffer de índices
+// Desenha geometrias indexadas e não indexadas usando o mesmo VAO
 function drawGeometry(gl, geometry) {
   gl.bindVertexArray(geometry.vao);
 
-  gl.drawElements(
-    gl.TRIANGLES,
-    geometry.indexCount,
-    gl.UNSIGNED_SHORT,
-    0
-  );
+  if (geometry.indexed) {
+    gl.drawElements(
+      gl.TRIANGLES,
+      geometry.indexCount,
+      geometry.indexType,
+      0
+    );
+  } else {
+    gl.drawArrays(
+      gl.TRIANGLES,
+      0,
+      geometry.vertexCount
+    );
+  }
 
   gl.bindVertexArray(null);
 }
