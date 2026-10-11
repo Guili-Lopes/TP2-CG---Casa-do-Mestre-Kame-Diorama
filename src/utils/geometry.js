@@ -22,7 +22,6 @@ function createAttribute(gl, location, data, size) {
   gl.enableVertexAttribArray(location);
 }
 
-
 function createGeometry(gl, locations, arrays) {
   const vao = gl.createVertexArray();
 

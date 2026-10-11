@@ -4,6 +4,10 @@ import { m4, resizeCanvasToDisplaySize, } from "./twgl.full.module.js";
 
 import { createSceneGeometries, drawGeometry, } from "./utils/geometry.js";
 
+import { loadImage, readImagePixels, } from "./utils/image-data.js";
+
+import { terrainConfig, setTerrainHeightMap, getGroundHeight, createTerrainGeometry, } from "./scene/terrain.js";
+
 import { initSidebar, updateSidebar, } from "./controls/sidebar.js";
 
 import { initInput, } from "./controls/input.js";
@@ -27,7 +31,7 @@ const state = {
     dirty: true,
   },
 
-  // Dados iniciais da câmera automática
+  // Câmera posicionada para visualizar o diorama inteiro
   camera: {
     distance: 25,
     elevation: Math.PI / 4,
@@ -56,6 +60,34 @@ const state = {
 
   timeOfDay: 12,
 };
+
+// Posições temporárias para testar a altura do terreno
+const testSpheres = [
+  {
+    x: 0,
+    z: -2,
+    radius: 0.3,
+    color: [0.95, 0.2, 0.15],
+  },
+  {
+    x: 4.6,
+    z: 1.2,
+    radius: 0.3,
+    color: [0.95, 0.85, 0.1],
+  },
+  {
+    x: -5.5,
+    z: 0.8,
+    radius: 0.3,
+    color: [0.15, 0.95, 0.25],
+  },
+  {
+    x: 6.1,
+    z: 0,
+    radius: 0.3,
+    color: [0.9, 0.2, 0.85],
+  },
+];
 
 const actions = {
   camera(camera) {
@@ -139,14 +171,12 @@ function getCameraPosition() {
 
   const z = horizontalDistance * Math.cos(camera.azimuth);
 
-  // Soma o alvo para permitir que a câmera orbite pontos diferentes da origem
   return [
     camera.target[0] + x,
     camera.target[1] + y,
     camera.target[2] + z,
   ];
 }
-
 
 // Desenha qualquer geometria aplicando sua matriz de modelo e cor
 function drawShape(gl, geometryName, modelMatrix, color) {
@@ -168,7 +198,6 @@ function drawShape(gl, geometryName, modelMatrix, color) {
     state.geometries[geometryName]
   );
 }
-
 
 async function initialize(gl) {
   state.program.id = await createProgramFromFiles(
@@ -220,7 +249,6 @@ async function initialize(gl) {
     ),
   };
 
-  // As uniforms abaixo serão enviadas para este programa ativo
   gl.useProgram(state.program.id);
 
   gl.enable(gl.DEPTH_TEST);
@@ -231,8 +259,21 @@ async function initialize(gl) {
     state.light.direction
   );
 
-  // Cria os VAOs das seis primitivas uma única vez
+  // Cria as seis primitivas para reutilização na cena
   state.geometries = createSceneGeometries(
+    gl,
+    state.program.locations
+  );
+
+  // Carrega os pixels antes de criar o terreno
+  const heightMapImage = await loadImage("./assets/textures/heightmap.png");
+
+  const heightMapPixels = readImagePixels(heightMapImage);
+
+  setTerrainHeightMap(heightMapPixels);
+
+  // Cria a geometria deformada do terreno uma única vez
+  state.geometries.terrain = createTerrainGeometry(
     gl,
     state.program.locations
   );
@@ -251,11 +292,9 @@ async function initialize(gl) {
   updateSidebar(state);
 }
 
-
 function update(dt) {
 
 }
-
 
 function render(gl) {
   // Limita a resolução interna para evitar buffers muito grandes
@@ -277,11 +316,9 @@ function render(gl) {
       gl.canvas.height
     );
 
-    // Mudando a proporção do canvas, a projeção precisa ser refeita
     state.projection.dirty = true;
   }
 
-  // Garante que a projeção também seja calculada no primeiro quadro
   if (state.projection.dirty) {
     updateProjection(gl);
   }
@@ -293,14 +330,12 @@ function render(gl) {
 
   const cameraPosition = getCameraPosition();
 
-  // lookAt cria a transformação da câmera posicionada no mundo
   const cameraMatrix = m4.lookAt(
     cameraPosition,
     state.camera.target,
     state.camera.up
   );
 
-  // A matriz de visualização é a inversa da matriz da câmera
   const viewMatrix = m4.inverse(cameraMatrix);
 
   gl.uniformMatrix4fv(
@@ -309,68 +344,68 @@ function render(gl) {
     viewMatrix
   );
 
+  // Hemisfério laranja que fecha a parte inferior do diorama
+  drawShape(
+    gl,
+    "lowerHemisphere",
+    m4.scaling([
+      terrainConfig.radius,
+      terrainConfig.hemisphereDepth,
+      terrainConfig.radius,
+    ]),
+    [1.0, 0.5, 0.1]
+  );
 
-  // Galeria temporária das seis geometrias, posicionadas lado a lado
+  // Terreno com os vértices deformados pelo height map
+  drawShape(
+    gl,
+    "terrain",
+    m4.identity(),
+    [0.3, 0.75, 0.25]
+  );
 
-  // Disco verde no plano XZ
+  // Água provisória, opaca e posicionada no nível zero
   drawShape(
     gl,
     "disc",
     m4.scale(
-      m4.translation([-7.5, 0, 0]),
-      [1.2, 1, 1.2]
+      m4.translation([0, terrainConfig.waterLevel, 0]),
+      [
+        terrainConfig.radius,
+        1,
+        terrainConfig.radius,
+      ]
     ),
-    [0.2, 0.75, 0.3]
+    [0.05, 0.42, 0.85]
   );
 
-  // Hemisfério inferior laranja, com a base arredondada no chão
-  drawShape(
-    gl,
-    "lowerHemisphere",
-    m4.translation([-4.5, 1, 0]),
-    [1.0, 0.5, 0.1]
-  );
+  // Esferas de teste apoiadas nas diferentes alturas da ilha
+  for (const sphere of testSpheres) {
+    const groundHeight = getGroundHeight(
+      sphere.x,
+      sphere.z
+    );
 
-  // Esfera amarela
-  drawShape(
-    gl,
-    "sphere",
-    m4.translation([-1.5, 1, 0]),
-    [1.0, 0.85, 0.1]
-  );
+    const modelMatrix = m4.scale(
+      m4.translation([
+        sphere.x,
+        groundHeight + sphere.radius,
+        sphere.z,
+      ]),
+      [
+        sphere.radius,
+        sphere.radius,
+        sphere.radius,
+      ]
+    );
 
-  // Cilindro azul, com a escala aumentando sua altura
-  drawShape(
-    gl,
-    "cylinder",
-    m4.scale(
-      m4.translation([1.5, 0.8, 0]),
-      [1.4, 1.6, 1.4]
-    ),
-    [0.1, 0.45, 0.9]
-  );
-
-  // Cone vermelho, apoiado no chão
-  drawShape(
-    gl,
-    "cone",
-    m4.scale(
-      m4.translation([4.5, 0.8, 0]),
-      [1.6, 1.6, 1.6]
-    ),
-    [0.9, 0.2, 0.15]
-  );
-
-  // Cubo roxo
-  drawShape(
-    gl,
-    "cube",
-    m4.scale(
-      m4.translation([7.5, 0.75, 0]),
-      [1.5, 1.5, 1.5]
-    ),
-    [0.55, 0.3, 0.85]
-  );
+    drawShape(
+      gl,
+      "sphere",
+      modelMatrix,
+      sphere.color
+    );
+  }
 }
 
 export { initialize, update, render, };
