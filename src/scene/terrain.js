@@ -6,6 +6,7 @@ import { sampleImage, } from "../utils/image-data.js";
 
 const terrainConfig = {
   radius: 10,
+  domeRadius: 10.2,
   waterLevel: 0,
   minHeight: -1.0,
   maxHeight: 1.5,

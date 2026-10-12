@@ -1,6 +1,8 @@
 import { m4, } from "../twgl.full.module.js";
 
-// Carrega um arquivo OBJ e devolve os dados da geometria
+import { createGeometry, } from "./geometry.js";
+
+// Carrega um arquivo OBJ e devolve os dados separados por material
 async function loadObj(url) {
   let response;
 
@@ -65,20 +67,20 @@ function calculateNormal(a, b, c) {
   return normal.map(value => value / length);
 }
 
-// Interpreta o OBJ e gera arrays de vértices não indexados
+// Interpreta o OBJ e separa os triângulos pelo material
 function parseObj(text) {
   const positions = [];
   const texcoords = [];
   const normals = [];
 
-  const position = [];
-  const texcoord = [];
-  const normal = [];
+  const groups = Object.create(null);
 
   const bounds = {
     min: [Infinity, Infinity, Infinity],
     max: [-Infinity, -Infinity, -Infinity],
   };
+
+  let currentMaterial = "default";
 
   const lines = text.split(/\r?\n/);
 
@@ -93,9 +95,15 @@ function parseObj(text) {
     const type = parts[0];
 
     if (type === "v") {
-      positions.push(
-        parts.slice(1, 4).map(value => parseFloat(value))
-      );
+      const vertex = parts.slice(1, 4).map(value => parseFloat(value));
+
+      positions.push(vertex);
+
+      // A caixa envolvente considera todos os vértices do modelo
+      for (let axis = 0; axis < 3; axis++) {
+        bounds.min[axis] = Math.min(bounds.min[axis], vertex[axis]);
+        bounds.max[axis] = Math.max(bounds.max[axis], vertex[axis]);
+      }
 
     } else if (type === "vt") {
       texcoords.push(
@@ -107,6 +115,9 @@ function parseObj(text) {
         parts.slice(1, 4).map(value => parseFloat(value))
       );
 
+    } else if (type === "usemtl") {
+      currentMaterial = parts.slice(1).join(" ") || "default";
+
     } else if (type === "f") {
       const references = parts.slice(1);
 
@@ -114,7 +125,16 @@ function parseObj(text) {
         throw new Error(`Face OBJ inválida na linha ${lineIndex + 1}`);
       }
 
-      // Cada referência pode conter posição, textura e normal
+      if (!groups[currentMaterial]) {
+        groups[currentMaterial] = {
+          position: [],
+          normal: [],
+          texcoord: [],
+        };
+      }
+
+      const group = groups[currentMaterial];
+
       const vertices = references.map(reference => {
         const [v, vt, vn] = reference.split("/");
 
@@ -137,7 +157,7 @@ function parseObj(text) {
         };
       });
 
-      // Triangulação em leque, preservando a ordem da face
+      // Triangula faces com três ou mais vértices
       for (let i = 1; i < vertices.length - 1; i++) {
         const triangle = [
           vertices[0],
@@ -152,37 +172,47 @@ function parseObj(text) {
         );
 
         for (const vertex of triangle) {
-          position.push(...vertex.position);
-          texcoord.push(...vertex.texcoord);
-          normal.push(...(vertex.normal ?? triangleNormal));
-
-          // Atualiza a caixa envolvente do modelo
-          for (let axis = 0; axis < 3; axis++) {
-            bounds.min[axis] = Math.min(
-              bounds.min[axis],
-              vertex.position[axis]
-            );
-
-            bounds.max[axis] = Math.max(
-              bounds.max[axis],
-              vertex.position[axis]
-            );
-          }
+          group.position.push(...vertex.position);
+          group.texcoord.push(...vertex.texcoord);
+          group.normal.push(...(vertex.normal ?? triangleNormal));
         }
       }
     }
   }
 
-  if (position.length === 0) {
+  if (Object.keys(groups).length === 0) {
     throw new Error("O arquivo OBJ não possui faces válidas.");
   }
 
+  // Converte os grupos em arrays compatíveis com o createGeometry
+  for (const group of Object.values(groups)) {
+    group.position = new Float32Array(group.position);
+    group.normal = new Float32Array(group.normal);
+    group.texcoord = new Float32Array(group.texcoord);
+
+    group.vertexCount = group.position.length / 3;
+  }
+
+  return { groups, bounds, };
+}
+
+// Cria um VAO para cada material do modelo
+async function loadModel(gl, locations, url) {
+  const model = await loadObj(url);
+
+  const groups = Object.create(null);
+
+  for (const [material, arrays] of Object.entries(model.groups)) {
+    groups[material] = createGeometry(
+      gl,
+      locations,
+      arrays
+    );
+  }
+
   return {
-    position: new Float32Array(position),
-    normal: new Float32Array(normal),
-    texcoord: new Float32Array(texcoord),
-    vertexCount: position.length / 3,
-    bounds,
+    groups,
+    bounds: model.bounds,
   };
 }
 
@@ -218,4 +248,4 @@ function createNormalizationMatrix(bounds, desiredHeight) {
   return m4.multiply(scaling, translation);
 }
 
-export { loadObj, parseObj, createNormalizationMatrix, };
+export { loadObj, parseObj, loadModel, createNormalizationMatrix, };

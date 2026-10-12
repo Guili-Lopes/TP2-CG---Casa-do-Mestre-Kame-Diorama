@@ -4,13 +4,33 @@ import { m4, resizeCanvasToDisplaySize, } from "./twgl.full.module.js";
 
 import { createSceneGeometries, drawGeometry, } from "./utils/geometry.js";
 
+import { loadModel, } from "./utils/obj-loader.js";
+
+import { MatrixStack, } from "./utils/matrix-stack.js";
+
 import { loadImage, readImagePixels, } from "./utils/image-data.js";
 
-import { terrainConfig, setTerrainHeightMap, getGroundHeight, createTerrainGeometry, } from "./scene/terrain.js";
+import { terrainConfig, setTerrainHeightMap, createTerrainGeometry, } from "./scene/terrain.js";
+
+import { createScenery, drawScenery, } from "./scene/scenery.js";
+
+import { updateCloud, drawCloud, } from "./scene/cloud.js";
 
 import { initSidebar, updateSidebar, } from "./controls/sidebar.js";
 
 import { initInput, } from "./controls/input.js";
+
+// Caminhos esperados dos modelos OBJ; ajuste aos nomes reais dos arquivos.
+// Esses modelos ainda precisam ser adicionados em assets/models/.
+const modelPaths = {
+  house: "./assets/models/kame-house/house.obj",
+  rooster: "./assets/models/kame-house/rooster.obj",
+  palm: "./assets/models/palmeiras/palm.obj",
+  rock1: "./assets/models/pedras/rock1.obj",
+  rock2: "./assets/models/pedras/rock2.obj",
+};
+
+const matrixStack = new MatrixStack();
 
 const state = {
   program: {
@@ -41,8 +61,9 @@ const state = {
     up: [0, 1, 0],
   },
 
-  // Geometrias compartilhadas pelos objetos da cena
+  // Geometrias compartilhadas e instâncias da paisagem
   geometries: null,
+  scenery: null,
 
   activeCamera: 1,
 
@@ -60,34 +81,6 @@ const state = {
 
   timeOfDay: 12,
 };
-
-// Posições temporárias para testar a altura do terreno
-const testSpheres = [
-  {
-    x: 0,
-    z: -2,
-    radius: 0.3,
-    color: [0.95, 0.2, 0.15],
-  },
-  {
-    x: 4.6,
-    z: 1.2,
-    radius: 0.3,
-    color: [0.95, 0.85, 0.1],
-  },
-  {
-    x: -5.5,
-    z: 0.8,
-    radius: 0.3,
-    color: [0.15, 0.95, 0.25],
-  },
-  {
-    x: 6.1,
-    z: 0,
-    radius: 0.3,
-    color: [0.9, 0.2, 0.85],
-  },
-];
 
 const actions = {
   camera(camera) {
@@ -178,9 +171,17 @@ function getCameraPosition() {
   ];
 }
 
-// Desenha qualquer geometria aplicando sua matriz de modelo e cor
-function drawShape(gl, geometryName, modelMatrix, color) {
+// Aceita o nome de uma primitiva ou uma geometria carregada de um OBJ
+function drawShape(gl, geometry, modelMatrix, color) {
   const locations = state.program.locations;
+
+  const geometryData = typeof geometry === "string"
+    ? state.geometries[geometry]
+    : geometry;
+
+  if (!geometryData) {
+    throw new Error(`Geometria não encontrada: ${geometry}`);
+  }
 
   gl.uniformMatrix4fv(
     locations.u_model,
@@ -195,7 +196,7 @@ function drawShape(gl, geometryName, modelMatrix, color) {
 
   drawGeometry(
     gl,
-    state.geometries[geometryName]
+    geometryData
   );
 }
 
@@ -259,24 +260,46 @@ async function initialize(gl) {
     state.light.direction
   );
 
-  // Cria as seis primitivas para reutilização na cena
+  // Cria as primitivas reutilizadas pelos objetos
   state.geometries = createSceneGeometries(
     gl,
     state.program.locations
   );
 
-  // Carrega os pixels antes de criar o terreno
-  const heightMapImage = await loadImage("./assets/textures/heightmap.png");
+  // Carrega o height map antes de gerar o terreno
+  const heightMapImage = await loadImage(
+    "./assets/textures/heightmap.png"
+  );
 
   const heightMapPixels = readImagePixels(heightMapImage);
 
   setTerrainHeightMap(heightMapPixels);
 
-  // Cria a geometria deformada do terreno uma única vez
   state.geometries.terrain = createTerrainGeometry(
     gl,
     state.program.locations
   );
+
+  // Carrega todos os modelos em paralelo e cria um VAO por material
+  const modelNames = Object.keys(modelPaths);
+
+  const loadedModels = await Promise.all(
+    modelNames.map(name => loadModel(
+      gl,
+      state.program.locations,
+      modelPaths[name]
+    ))
+  );
+
+  const models = Object.fromEntries(
+    modelNames.map((name, index) => [
+      name,
+      loadedModels[index],
+    ])
+  );
+
+  // Prepara as instâncias e as matrizes de normalização
+  state.scenery = createScenery(models);
 
   gl.clearColor(
     0.53,
@@ -292,8 +315,9 @@ async function initialize(gl) {
   updateSidebar(state);
 }
 
+// Atualiza os elementos animados da cena
 function update(dt) {
-
+  updateCloud(dt);
 }
 
 function render(gl) {
@@ -344,19 +368,19 @@ function render(gl) {
     viewMatrix
   );
 
-  // Hemisfério laranja que fecha a parte inferior do diorama
+  // Hemisfério que fecha a parte inferior do diorama
   drawShape(
     gl,
     "lowerHemisphere",
     m4.scaling([
-      terrainConfig.radius,
+      terrainConfig.domeRadius,
       terrainConfig.hemisphereDepth,
-      terrainConfig.radius,
+      terrainConfig.domeRadius,
     ]),
     [1.0, 0.5, 0.1]
   );
 
-  // Terreno com os vértices deformados pelo height map
+  // Terreno deformado pelo height map
   drawShape(
     gl,
     "terrain",
@@ -371,41 +395,30 @@ function render(gl) {
     m4.scale(
       m4.translation([0, terrainConfig.waterLevel, 0]),
       [
-        terrainConfig.radius,
+        terrainConfig.domeRadius,
         1,
-        terrainConfig.radius,
+        terrainConfig.domeRadius,
       ]
     ),
     [0.05, 0.42, 0.85]
   );
 
-  // Esferas de teste apoiadas nas diferentes alturas da ilha
-  for (const sphere of testSpheres) {
-    const groundHeight = getGroundHeight(
-      sphere.x,
-      sphere.z
-    );
+  // Reutiliza a mesma pilha de matrizes para os objetos da cena
+  matrixStack.reset();
 
-    const modelMatrix = m4.scale(
-      m4.translation([
-        sphere.x,
-        groundHeight + sphere.radius,
-        sphere.z,
-      ]),
-      [
-        sphere.radius,
-        sphere.radius,
-        sphere.radius,
-      ]
-    );
+  drawScenery(
+    gl,
+    state.scenery,
+    matrixStack,
+    drawShape
+  );
 
-    drawShape(
-      gl,
-      "sphere",
-      modelMatrix,
-      sphere.color
-    );
-  }
+  // Nuvem voadora orbitando o diorama
+  drawCloud(
+    gl,
+    matrixStack,
+    drawShape
+  );
 }
 
 export { initialize, update, render, };
