@@ -216,7 +216,7 @@ function drawUmbrella(gl, instance, scenery, stack, drawShape) {
   // A canga acompanha a posição e a rotação do guarda-sol
   stack.push(
     m4.multiply(
-      m4.translation([-1.05, 0.03, 0.2]),
+      m4.translation([-1.05, 0.13, 0.2]),
       m4.rotationY(0.35)
     )
   );
