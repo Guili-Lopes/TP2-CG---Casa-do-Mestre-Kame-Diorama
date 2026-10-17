@@ -1,16 +1,17 @@
-function initInput(actions) {
+// Associa os atalhos do teclado ao disparador de ações
+function initInput(runAction) {
   const keyActions = {
-    "1": () => actions.camera(1),
-    "2": () => actions.camera(2),
-    "3": () => actions.camera(3),
+    "1": () => runAction("camera", 1),
+    "2": () => runAction("camera", 2),
+    "3": () => runAction("camera", 3),
 
-    "p": () => actions.nextPose(),
+    "p": () => runAction("nextPose"),
 
-    "l": () => actions.toggleLighting(),
-    "n": () => actions.toggleFog(),
-    "m": () => actions.toggleSound(),
+    "l": () => runAction("toggleLighting"),
+    "n": () => runAction("toggleFog"),
+    "m": () => runAction("toggleSound"),
 
-    "t": () => actions.skipToNight(),
+    "t": () => runAction("skipToNight"),
   };
 
   window.addEventListener("keydown", (event) => {

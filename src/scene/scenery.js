@@ -1,8 +1,17 @@
 import { m4, } from "../twgl.full.module.js";
 
-import { createNormalizationMatrix, } from "../utils/obj-loader.js";
+import { loadModel, createNormalizationMatrix, } from "../utils/obj-loader.js";
 
 import { terrainConfig, getGroundHeight, } from "./terrain.js";
+
+// Modelos utilizados pelos objetos da paisagem
+const modelPaths = {
+  house: "./assets/models/kame-house/house.obj",
+  rooster: "./assets/models/kame-house/rooster.obj",
+  palm: "./assets/models/palmeiras/palm.obj",
+  rock1: "./assets/models/pedras/rock1.obj",
+  rock2: "./assets/models/pedras/rock2.obj",
+};
 
 // Converte as cores RGB de 0–255 para o intervalo de 0–1
 function rgb(r, g, b) {
@@ -390,6 +399,28 @@ function createScenery(models) {
   };
 }
 
+// Carrega todos os modelos em paralelo e prepara suas instâncias
+async function loadScenery(gl, locations) {
+  const modelNames = Object.keys(modelPaths);
+
+  const loadedModels = await Promise.all(
+    modelNames.map(name => loadModel(
+      gl,
+      locations,
+      modelPaths[name]
+    ))
+  );
+
+  const models = Object.fromEntries(
+    modelNames.map((name, index) => [
+      name,
+      loadedModels[index],
+    ])
+  );
+
+  return createScenery(models);
+}
+
 // Desenha as instâncias aproveitando as mesmas geometrias
 function drawScenery(gl, scenery, stack, drawShape) {
   const drawers = {
@@ -448,4 +479,4 @@ function drawScenery(gl, scenery, stack, drawShape) {
   }
 }
 
-export { createScenery, updateScenery, drawScenery, };
+export { loadScenery, createScenery, updateScenery, drawScenery, };

@@ -2,7 +2,7 @@ import { primitives, } from "../twgl.full.module.js";
 
 import { createGeometry, } from "../utils/geometry.js";
 
-import { sampleImage, } from "../utils/image-data.js";
+import { loadImage, readImagePixels, } from "../utils/image-data.js";
 
 const terrainConfig = {
   radius: 10,
@@ -133,4 +133,15 @@ function createTerrainGeometry(gl, locations) {
   );
 }
 
-export { terrainConfig, setTerrainHeightMap, getGroundHeight, createTerrainGeometry, };
+// Carrega o height map e cria a geometria do terreno
+async function loadTerrain(gl, locations, heightMapUrl) {
+  const image = await loadImage(heightMapUrl);
+
+  const pixels = readImagePixels(image);
+
+  setTerrainHeightMap(pixels);
+
+  return createTerrainGeometry(gl, locations);
+}
+
+export { terrainConfig, setTerrainHeightMap, getGroundHeight, createTerrainGeometry, loadTerrain };

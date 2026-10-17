@@ -1,4 +1,5 @@
-function initSidebar(actions) {
+// Encaminha os cliques do painel para o disparador de ações
+function initSidebar(runAction) {
   const sidebar = document.querySelector(".sidebar");
 
   sidebar.addEventListener("click", (event) => {
@@ -11,17 +12,14 @@ function initSidebar(actions) {
     const action = button.dataset.action;
 
     if (action === "camera") {
-      const camera = Number(button.dataset.camera);
-
-      actions.camera(camera);
-    } else if (actions[action]) {
-      actions[action]();
+      runAction(action, Number(button.dataset.camera));
+    } else {
+      runAction(action);
     }
 
     button.blur();
   });
 }
-
 
 function formatTime(timeOfDay) {
   const normalizedTime = ((timeOfDay % 24) + 24) % 24;
