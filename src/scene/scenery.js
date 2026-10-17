@@ -23,6 +23,22 @@ const houseColors = {
   Plastic: rgb(175, 175, 175),
 };
 
+// Estado da rotação do galo no telhado
+const roosterState = {
+  angle: 0,
+  speed: 0.8,
+};
+
+// Pivô do galo nas coordenadas originais do modelo OBJ
+const roosterPivot = [-0.0043, 0, 1.9233];
+
+// Atualiza a rotação do galo com base no tempo
+function updateScenery(dt) {
+  roosterState.angle = (
+    roosterState.angle + roosterState.speed * dt
+  ) % (Math.PI * 2);
+}
+
 // Desenha todos os grupos de material de um modelo
 function drawModel(gl, model, stack, drawShape, getColor) {
   for (const [material, geometry] of Object.entries(model.groups)) {
@@ -54,10 +70,11 @@ function drawPart(gl, geometry, position, scale, color, stack, drawShape) {
   stack.pop();
 }
 
-// Casa e galo compartilham a mesma matriz de normalização
+// Casa fixa com o galo girando como objeto filho
 function drawHouse(gl, instance, scenery, stack, drawShape) {
   stack.push(scenery.normalizations.house);
 
+  // A casa permanece fixa
   drawModel(
     gl,
     scenery.models.house,
@@ -66,7 +83,25 @@ function drawHouse(gl, instance, scenery, stack, drawShape) {
     material => houseColors[material] ?? rgb(205, 202, 195)
   );
 
-  // O galo permanece fixo até a etapa de animação
+  // Rotaciona o galo em torno do eixo da haste
+  const translation = m4.translation(roosterPivot);
+
+  const rotation = m4.rotationY(roosterState.angle);
+
+  const inverseTranslation = m4.translation([
+    -roosterPivot[0],
+    -roosterPivot[1],
+    -roosterPivot[2],
+  ]);
+
+  // T(pivô) * Ry(ângulo) * T(-pivô)
+  const roosterMatrix = m4.multiply(
+    m4.multiply(translation, rotation),
+    inverseTranslation
+  );
+
+  stack.push(roosterMatrix);
+
   drawModel(
     gl,
     scenery.models.rooster,
@@ -75,6 +110,7 @@ function drawHouse(gl, instance, scenery, stack, drawShape) {
     material => houseColors[material] ?? rgb(210, 65, 35)
   );
 
+  stack.pop();
   stack.pop();
 }
 
@@ -412,4 +448,4 @@ function drawScenery(gl, scenery, stack, drawShape) {
   }
 }
 
-export { createScenery, drawScenery, };
+export { createScenery, updateScenery, drawScenery, };

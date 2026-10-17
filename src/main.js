@@ -12,7 +12,7 @@ import { loadImage, readImagePixels, } from "./utils/image-data.js";
 
 import { terrainConfig, setTerrainHeightMap, createTerrainGeometry, } from "./scene/terrain.js";
 
-import { createScenery, drawScenery, } from "./scene/scenery.js";
+import { createScenery, updateScenery, drawScenery, } from "./scene/scenery.js";
 
 import { updateCloud, drawCloud, } from "./scene/cloud.js";
 
@@ -318,6 +318,8 @@ async function initialize(gl) {
 // Atualiza os elementos animados da cena
 function update(dt) {
   updateCloud(dt);
+
+  updateScenery(dt);
 }
 
 function render(gl) {
