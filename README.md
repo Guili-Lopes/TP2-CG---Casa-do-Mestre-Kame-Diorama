@@ -3,7 +3,9 @@
 > Trabalho Prático 2 de Computação Gráfica — um paraíso dentro da cápsula: a ilha do Mestre Kame, recriada em WebGL2.
 
 🔗 **Cena publicada:** https://guili-lopes.github.io/TP2-CG---Casa-do-Mestre-Kame-Diorama/
+
 📦 **Repositório:** https://github.com/Guili-Lopes/TP2-CG---Casa-do-Mestre-Kame-Diorama
+
 🎬 **Vídeo:** 
 
 ---
