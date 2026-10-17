@@ -2,7 +2,7 @@ import { primitives, } from "../twgl.full.module.js";
 
 import { createGeometry, } from "../utils/geometry.js";
 
-import { loadImage, readImagePixels, } from "../utils/image-data.js";
+import { loadImage, readImagePixels, sampleImage, } from "../utils/image-data.js";
 
 const terrainConfig = {
   radius: 10,
