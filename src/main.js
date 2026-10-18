@@ -59,6 +59,22 @@ function drawShape(gl, geometry, modelMatrix, color) {
   drawGeometry(gl, geometryData);
 }
 
+// Liga a onda do rabo com os parâmetros da pose, ou desliga com null
+function setTailWave(gl, wave) {
+  const locations = state.program.locations;
+
+  if (!wave) {
+    gl.uniform1f(locations.u_tailWave, 0.0);
+    return;
+  }
+
+  gl.uniform1f(locations.u_tailWave, wave.amplitude);
+  gl.uniform3fv(locations.u_tailPivot, wave.pivot);
+  gl.uniform1f(locations.u_tailLength, wave.length);
+  gl.uniform3fv(locations.u_waveAxis, wave.axis);
+  gl.uniform1f(locations.u_time, wave.time);
+}
+
 // Inicializa o programa, os modelos e os controles
 async function initialize(gl) {
   state.program.id = await createProgramFromFiles(
@@ -70,7 +86,8 @@ async function initialize(gl) {
   const locations = getLocations(
     gl,
     state.program.id,
-    ["u_model", "u_view", "u_projection", "u_color", "u_lightDirection"],
+    ["u_model", "u_view", "u_projection", "u_color", "u_lightDirection", "u_tailWave", 
+      "u_tailPivot", "u_tailLength", "u_tailPivot", "u_tailLength", "u_waveAxis", "u_time"],
     ["a_coords", "a_normal", "a_texcoord"]
   );
 
@@ -106,7 +123,6 @@ async function initialize(gl) {
   initInput(runAction);
   updateSidebar(state);
 }
-
 
 // Atualiza os elementos animados da cena
 function update(dt) {
@@ -145,7 +161,7 @@ function render(gl) {
   drawScenery(gl, state.scenery, matrixStack, drawShape);
 
   // Desenha somente a pose selecionada na barra lateral
-  drawGoku(gl, state.goku, state.poseIndex, matrixStack, drawShape);
+  drawGoku(gl, state.goku, state.poseIndex, matrixStack, drawShape, setTailWave);
 
   drawCloud(gl, matrixStack, drawShape);
 }

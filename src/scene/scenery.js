@@ -2,7 +2,7 @@ import { m4, } from "../twgl.full.module.js";
 
 import { loadModel, createNormalizationMatrix, } from "../utils/obj-loader.js";
 
-import { terrainConfig, getGroundHeight, } from "./terrain.js";
+import { terrainConfig, getGroundHeight, } from "../scene/terrain.js";
 
 // Modelos utilizados pelos objetos da paisagem
 const modelPaths = {

@@ -2,7 +2,7 @@ import { m4, } from "../twgl.full.module.js";
 
 import { loadModel, } from "../utils/obj-loader.js";
 
-import { getGroundHeight, } from "./terrain.js";
+import { getGroundHeight, } from "../scene/terrain.js";
 
 // Caminhos dos modelos do Goku
 const modelPaths = {
@@ -35,6 +35,8 @@ const gokuState = {
   time: 0,
   amplitude: 0.4,
   speed: 3,
+  waveAmplitude: 6,
+  tailLength: 50,
 };
 
 // Posições iniciais baseadas na casa, no píer e na canga
@@ -45,14 +47,13 @@ const pierEnd = [
   4.5 + Math.cos(pierRotation) * 3.45,
 ];
 
-// Substituir os pivôs abaixo pelas coordenadas medidas em cada OBJ
 const tailPivots = {
   standing: [0.33737, 30.513, -10.242],
   sitting: [-1.3561, 20.699, 10.283],
   lying: [-0.27097, -5.9149, 4.7196],
 };
 
-// Tabela de poses compartilhada com a barra lateral
+// Tabela de poses
 const gokuPoses = [
   {
     name: "Em pé",
@@ -65,6 +66,7 @@ const gokuPoses = [
 
     pivot: tailPivots.standing,
     tailBaseRotation: m4.identity(),
+    waveAxis: [1, 0, 0],
   },
 
   {
@@ -78,6 +80,7 @@ const gokuPoses = [
 
     pivot: tailPivots.sitting,
     tailBaseRotation: m4.identity(),
+    waveAxis: [1, 0, 0],
   },
 
   {
@@ -91,9 +94,9 @@ const gokuPoses = [
 
     pivot: tailPivots.lying,
     tailBaseRotation: m4.rotationZ(Math.PI * 0.43),
+    waveAxis: [1, 0, 0],
   },
 ];
-
 
 // Normaliza cada pose utilizando a mesma escala da pose em pé
 function createPoseNormalization(bounds, scale) {
@@ -118,7 +121,6 @@ function createPoseNormalization(bounds, scale) {
   // S * T: centraliza e apoia o modelo antes de escalar
   return m4.multiply(scaling, translation);
 }
-
 
 // Carrega os seis modelos e prepara as três poses
 async function loadGoku(gl, locations) {
@@ -192,14 +194,12 @@ async function loadGoku(gl, locations) {
   };
 }
 
-
 // Atualiza a oscilação do rabo
 function updateGoku(dt) {
   gokuState.time += dt;
 }
 
-
-// Desenha todos os materiais de um modelo
+// Desenha todos os materiais do modelo
 function drawModel(gl, model, stack, drawShape, getColor) {
   for (const [material, geometry] of Object.entries(model.groups)) {
     drawShape(
@@ -212,7 +212,7 @@ function drawModel(gl, model, stack, drawShape, getColor) {
 }
 
 // Desenha a pose atual, com o rabo como objeto filho
-function drawGoku(gl, goku, poseIndex, stack, drawShape) {
+function drawGoku(gl, goku, poseIndex, stack, drawShape, setTailWave) {
   const pose = goku.poses[poseIndex];
 
   // Posiciona e orienta o Goku no mundo
@@ -264,6 +264,15 @@ function drawGoku(gl, goku, poseIndex, stack, drawShape) {
 
   stack.push(tailMatrix);
 
+  // Liga a onda do rabo só enquanto o rabo é desenhado
+  setTailWave(gl, {
+    amplitude: gokuState.waveAmplitude,
+    pivot: pose.pivot,
+    length: gokuState.tailLength,
+    axis: pose.waveAxis,
+    time: gokuState.time
+  });
+
   drawModel(
     gl,
     pose.tail,
@@ -271,6 +280,9 @@ function drawGoku(gl, goku, poseIndex, stack, drawShape) {
     drawShape,
     () => tailColor
   );
+
+  //Desliga a onda
+  setTailWave(gl, null);
 
   stack.pop();
   stack.pop();

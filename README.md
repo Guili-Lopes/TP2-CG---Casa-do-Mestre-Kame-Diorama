@@ -83,12 +83,12 @@ WebGL2 puro com shaders GLSL ES 3.0, e a [TWGL.js](https://twgljs.org/) para uti
 
   _Na cena:_ lâmpada da varanda da casa e o brilho laranja das esferas do dragão à noite.
 
-- [ ] **6. Poses alternativas**
+- [x] **6. Poses alternativas**
   > Poses alternativas: ao alternar as poses do personagem com P, além de mudar a posição e orientação, coloque-o de fato em outra pose (eg, sentado, deitado, dormindo)
 
   _Na cena:_ Goku em pé ao lado da casa, sentado na ponta do píer e deitado tirando um cochilo na canga.
 
-- [ ] **7. Vários tipos de objetos**
+- [x] **7. Vários tipos de objetos**
   > Vários tipos de objetos: em vez de compor o cenário com apenas 03 tipos de objetos, tenha uns 07 tipos diferentes para dar variedade
 
   _Na cena:_ casa, palmeira, pedra, arbusto, tufo de grama, guarda-sol com canga e píer.
@@ -100,12 +100,12 @@ WebGL2 puro com shaders GLSL ES 3.0, e a [TWGL.js](https://twgljs.org/) para uti
 
   _Na cena:_ a cor e a direção da luz direcional mudam com a hora, e o skybox transita entre dia e noite. A tecla <kbd>T</kbd> acelera o tempo até o próximo período.
 
-- [ ] **9. Material transparente**
+- [x] **9. Material transparente**
   > Material transparente: tenha algo como vidro ou outra coisa que seja semitransparente. Detalhe: objetos transparentes devem ser desenhados por último. Se fizer o opcional "Líquido", aí este não conta 2x
 
   _Na cena:_ os vidros das janelas da Kame House (objeto distinto da água).
 
-- [ ] **10. Chão com relevo**
+- [x] **10. Chão com relevo**
   > Chão com relevo: em vez de plano, faça com que o chão tenha relevo. Uma ideia é usar um height-map: uma textura em escala de cinza em que cada texel representa a altura do chão naquele pixel. Veja um exemplo de height map na aula sobre texturas
 
   _Na cena:_ o height map forma a própria ilha, a terra emerge no centro e afunda sob o mar nas bordas. Todos os objetos são apoiados no relevo.
@@ -125,7 +125,7 @@ WebGL2 puro com shaders GLSL ES 3.0, e a [TWGL.js](https://twgljs.org/) para uti
 
   _Na cena:_ shear com intensidade dada por uma textura de ruído nas folhas das palmeiras, nos arbustos e na grama; o galo do catavento gira acompanhando a direção do vento.
 
-- [ ] **14. Modelos tridimensionais**
+- [x] **14. Modelos tridimensionais**
   > ⭐ Modelos tridimensionais: em vez de usar os sólidos próprios ou da TWGL.js, crie ou use modelos tridimensionais de terceiros e carregue-os no seu programa. Um formato simples é o .obj (mas ele não suporta animação). Tem também o formato glTF (mais complexo mas suporta animação)
 
   _Na cena:_ Kame House, Goku (nas três poses), palmeiras e pedras, carregados por um leitor de `.obj` próprio que separa as malhas por material.

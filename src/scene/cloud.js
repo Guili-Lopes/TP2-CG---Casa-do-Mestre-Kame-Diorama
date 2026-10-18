@@ -16,9 +16,7 @@ const cloudColor = [
 
 // Atualiza a posição orbital e a flutuação da nuvem
 function updateCloud(dt) {
-  cloudState.angle = (
-    cloudState.angle + cloudState.speed * dt
-  ) % (Math.PI * 2);
+  cloudState.angle = (cloudState.angle + cloudState.speed * dt) % (Math.PI * 2);
 
   cloudState.time += dt;
 }
@@ -27,9 +25,7 @@ function updateCloud(dt) {
 function drawCloud(gl, stack, drawShape) {
   const fluctuation = 0.2 * Math.sin(cloudState.time * 2);
 
-  stack.push(
-    m4.rotationY(cloudState.angle)
-  );
+  stack.push(m4.rotationY(cloudState.angle));
 
   stack.push(
     m4.translation([
@@ -40,9 +36,7 @@ function drawCloud(gl, stack, drawShape) {
   );
 
   stack.push(
-    m4.rotationZ(
-      0.1 * Math.sin(cloudState.time)
-    )
+    m4.rotationZ(0.1 * Math.sin(cloudState.time))
   );
 
   const parts = [

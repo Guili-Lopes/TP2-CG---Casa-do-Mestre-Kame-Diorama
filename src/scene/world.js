@@ -1,6 +1,6 @@
 import { m4, } from "../twgl.full.module.js";
 
-import { terrainConfig, } from "./terrain.js";
+import { terrainConfig, } from "../scene/terrain.js";
 
 // Desenha as três partes principais do diorama
 function drawWorld(gl, drawShape) {
