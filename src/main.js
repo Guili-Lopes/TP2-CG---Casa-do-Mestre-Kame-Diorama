@@ -10,10 +10,10 @@ import { gokuPoses, loadGoku, updateGoku, drawGoku, } from "./scene/goku.js";
 import { drawWorld, } from "./scene/world.js";
 import { updateCloud, drawCloud, } from "./scene/cloud.js";
 
-import { markProjectionDirty, updateProjection, getViewMatrix, } from "./controls/cameras.js";
+import { markProjectionDirty, updateProjection, updateCameras, getViewMatrix, } from "./controls/cameras.js";
 import { createActionRunner, } from "./controls/actions.js";
 import { initSidebar, updateSidebar, } from "./controls/sidebar.js";
-import { initInput, } from "./controls/input.js";
+import { initInput, consumeInput, } from "./controls/input.js";
 
 const matrixStack = new MatrixStack();
 
@@ -120,12 +120,18 @@ async function initialize(gl) {
   const runAction = createActionRunner(state);
 
   initSidebar(runAction);
-  initInput(runAction);
+  initInput(runAction, gl.canvas);
   updateSidebar(state);
 }
 
-// Atualiza os elementos animados da cena
+// Atualiza as câmeras e os elementos animados da cena
 function update(dt) {
+  updateCameras(
+    dt,
+    state.activeCamera,
+    consumeInput()
+  );
+
   updateCloud(dt);
   updateScenery(dt);
   updateGoku(dt);
@@ -151,7 +157,7 @@ function render(gl) {
   gl.uniformMatrix4fv(
     locations.u_view,
     false,
-    getViewMatrix()
+    getViewMatrix(state.activeCamera)
   );
 
   drawWorld(gl, drawShape);

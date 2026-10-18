@@ -525,3 +525,12 @@ kbd {
   border: 2px solid var(--orange-dark);
   border-radius: 10px;
 }
+
+/* Indica que a cena aceita movimentos de arrasto */
+canvas {
+  cursor: grab;
+}
+
+canvas:active {
+  cursor: grabbing;
+}

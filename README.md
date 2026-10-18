@@ -100,7 +100,7 @@ WebGL2 puro com shaders GLSL ES 3.0, e a [TWGL.js](https://twgljs.org/) para uti
 
   _Na cena:_ a cor e a direção da luz direcional mudam com a hora, e o skybox transita entre dia e noite. A tecla <kbd>T</kbd> acelera o tempo até o próximo período.
 
-- [x] **9. Material transparente**
+- [ ] **9. Material transparente**
   > Material transparente: tenha algo como vidro ou outra coisa que seja semitransparente. Detalhe: objetos transparentes devem ser desenhados por último. Se fizer o opcional "Líquido", aí este não conta 2x
 
   _Na cena:_ os vidros das janelas da Kame House (objeto distinto da água).
@@ -110,7 +110,7 @@ WebGL2 puro com shaders GLSL ES 3.0, e a [TWGL.js](https://twgljs.org/) para uti
 
   _Na cena:_ o height map forma a própria ilha, a terra emerge no centro e afunda sob o mar nas bordas. Todos os objetos são apoiados no relevo.
 
-- [ ] **11. Câmera de navegação livre**
+- [x] **11. Câmera de navegação livre**
   > ⭐ Câmera de navegação livre com WASD para voar e mouse para mudar direção
 
   _Na cena:_ terceira câmera, ativada pela tecla <kbd>3</kbd>.

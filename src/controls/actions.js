@@ -1,9 +1,14 @@
 import { updateSidebar, } from "./sidebar.js";
 
+import { transitionToCamera, } from "./cameras.js";
+
 // Define as ações que alteram o estado da aplicação
 function createActions(state) {
   return {
     camera(camera) {
+      // A câmera livre herda a posição e direção da câmera anterior
+      transitionToCamera(state.activeCamera, camera);
+
       state.activeCamera = camera;
     },
 
