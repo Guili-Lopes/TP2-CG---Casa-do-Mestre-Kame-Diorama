@@ -1,0 +1,12 @@
+# materiais do Goku (as imagens são aplicadas pelo código)
+newmtl Body
+Kd 1.000 1.000 1.000
+map_Kd Kid_Goku.png
+
+newmtl Head
+Kd 1.000 1.000 1.000
+map_Kd Kid_Goku.png
+
+newmtl Power_Pole_Sheathed
+Kd 1.000 1.000 1.000
+map_Kd Power_Pole.png

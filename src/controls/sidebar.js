@@ -76,7 +76,7 @@ function updateSidebar(state) {
 
   const currentTime = document.querySelector("#current-time");
 
-  currentPose.textContent = state.poses[state.poseIndex];
+  currentPose.textContent = state.poses[state.poseIndex].name;
 
   currentTime.textContent = formatTime(state.timeOfDay);
 }

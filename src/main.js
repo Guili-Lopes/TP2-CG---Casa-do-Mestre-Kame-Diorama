@@ -6,6 +6,7 @@ import { MatrixStack, } from "./utils/matrix-stack.js";
 
 import { loadTerrain, } from "./scene/terrain.js";
 import { loadScenery, updateScenery, drawScenery, } from "./scene/scenery.js";
+import { gokuPoses, loadGoku, updateGoku, drawGoku, } from "./scene/goku.js";
 import { drawWorld, } from "./scene/world.js";
 import { updateCloud, drawCloud, } from "./scene/cloud.js";
 
@@ -28,10 +29,11 @@ const state = {
 
   geometries: null,
   scenery: null,
+  goku: null,
 
   activeCamera: 1,
   poseIndex: 0,
-  poses: ["Em pé", "Sentado no píer", "Tirando cochilo"],
+  poses: gokuPoses,
 
   lightingEnabled: true,
   fogEnabled: false,
@@ -39,7 +41,7 @@ const state = {
   timeOfDay: 12,
 };
 
-// Desenha uma primitiva ou uma geometria OBJ com matriz e cor próprias
+// Desenha uma primitiva ou geometria OBJ com matriz e cor próprias
 function drawShape(gl, geometry, modelMatrix, color) {
   const geometryData = typeof geometry === "string"
     ? state.geometries[geometry]
@@ -57,7 +59,7 @@ function drawShape(gl, geometry, modelMatrix, color) {
   drawGeometry(gl, geometryData);
 }
 
-// Inicializa o programa, as geometrias e os controles
+// Inicializa o programa, os modelos e os controles
 async function initialize(gl) {
   state.program.id = await createProgramFromFiles(
     gl,
@@ -93,6 +95,9 @@ async function initialize(gl) {
 
   state.scenery = await loadScenery(gl, locations);
 
+  // Carrega as três poses após a inicialização do terreno
+  state.goku = await loadGoku(gl, locations);
+
   gl.clearColor(0.53, 0.81, 0.92, 1.0);
 
   const runAction = createActionRunner(state);
@@ -102,13 +107,15 @@ async function initialize(gl) {
   updateSidebar(state);
 }
 
-// Atualiza as animações da cena
+
+// Atualiza os elementos animados da cena
 function update(dt) {
   updateCloud(dt);
   updateScenery(dt);
+  updateGoku(dt);
 }
 
-// Desenha o mundo, os objetos e a nuvem
+// Desenha o mundo, o cenário, o Goku e a nuvem
 function render(gl) {
   const pixelRatio = Math.min(window.devicePixelRatio, 2);
 
@@ -136,6 +143,10 @@ function render(gl) {
   matrixStack.reset();
 
   drawScenery(gl, state.scenery, matrixStack, drawShape);
+
+  // Desenha somente a pose selecionada na barra lateral
+  drawGoku(gl, state.goku, state.poseIndex, matrixStack, drawShape);
+
   drawCloud(gl, matrixStack, drawShape);
 }
 

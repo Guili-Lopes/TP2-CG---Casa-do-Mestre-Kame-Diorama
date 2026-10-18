@@ -1,0 +1,62 @@
+# Blender 5.2.2 LTS MTL File: 'goku_sitting.blend'
+# www.blender.org
+
+newmtl Body
+Ns 92.156860
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd C:/Users/guiga/OneDrive/Documentos/blender tb 2/goku/Kid_Goku.png
+
+newmtl Body.001
+Ns 92.156860
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd C:/Users/guiga/Downloads/dragon-ball-kid-goku/Kid_Goku.png
+
+newmtl Head
+Ns 92.156860
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd C:/Users/guiga/OneDrive/Documentos/blender tb 2/goku/Kid_Goku.png
+
+newmtl Head.001
+Ns 92.156860
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd C:/Users/guiga/Downloads/dragon-ball-kid-goku/Kid_Goku.png
+
+newmtl Power_Pole_Sheathed
+Ns 92.156860
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd C:/Users/guiga/OneDrive/Documentos/blender tb 2/goku/Power_Pole.png
+
+newmtl Power_Pole_Sheathed.001
+Ns 92.156860
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd C:/Users/guiga/Downloads/dragon-ball-kid-goku/Power_Pole.png
