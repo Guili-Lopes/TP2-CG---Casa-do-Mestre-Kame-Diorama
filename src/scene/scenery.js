@@ -30,6 +30,23 @@ const houseColors = {
   white_wood: rgb(240, 236, 225),
   metal: rgb(175, 175, 175),
   Plastic: rgb(175, 175, 175),
+  red: rgb(201, 74, 64),
+};
+
+// Material de iluminação associado a cada parte da casa
+const houseMaterials = {
+  rose_wood: "painted",
+  Roof_Tile: "tile",
+  Roof_Tile_2: "tile",
+  material: "painted",
+  text: "painted",
+  green_dor: "wood",
+  galsss: "glass",
+  cement: "matte",
+  white_wood: "wood",
+  metal: "metal",
+  Plastic: "metal",
+  red: "painted",
 };
 
 // Estado da rotação do galo no telhado
@@ -48,20 +65,21 @@ function updateScenery(dt) {
   ) % (Math.PI * 2);
 }
 
-// Desenha todos os grupos de material de um modelo
-function drawModel(gl, model, stack, drawShape, getColor) {
+// Desenha os grupos do modelo com cores e materiais individuais
+function drawModel(gl, model, stack, drawShape, getColor, getMaterial = () => "matte") {
   for (const [material, geometry] of Object.entries(model.groups)) {
     drawShape(
       gl,
       geometry,
       stack.current(),
-      getColor(material)
+      getColor(material),
+      getMaterial(material)
     );
   }
 }
 
-// Aplica uma transformação local a uma primitiva
-function drawPart(gl, geometry, position, scale, color, stack, drawShape) {
+// Aplica uma transformação local e um material à primitiva
+function drawPart(gl, geometry, position, scale, color, stack, drawShape, material = "matte") {
   const localMatrix = m4.scale(
     m4.translation(position),
     scale
@@ -73,23 +91,24 @@ function drawPart(gl, geometry, position, scale, color, stack, drawShape) {
     gl,
     geometry,
     stack.current(),
-    color
+    color,
+    material
   );
 
   stack.pop();
 }
 
-// Casa fixa com o galo girando como objeto filho
+// Casa com materiais próprios e galo metálico hierárquico
 function drawHouse(gl, instance, scenery, stack, drawShape) {
   stack.push(scenery.normalizations.house);
 
-  // A casa permanece fixa
   drawModel(
     gl,
     scenery.models.house,
     stack,
     drawShape,
-    material => houseColors[material] ?? rgb(205, 202, 195)
+    material => houseColors[material] ?? rgb(205, 202, 195),
+    material => houseMaterials[material] ?? "matte"
   );
 
   // Rotaciona o galo em torno do eixo da haste
@@ -103,7 +122,6 @@ function drawHouse(gl, instance, scenery, stack, drawShape) {
     -roosterPivot[2],
   ]);
 
-  // T(pivô) * Ry(ângulo) * T(-pivô)
   const roosterMatrix = m4.multiply(
     m4.multiply(translation, rotation),
     inverseTranslation
@@ -116,37 +134,43 @@ function drawHouse(gl, instance, scenery, stack, drawShape) {
     scenery.models.rooster,
     stack,
     drawShape,
-    material => houseColors[material] ?? rgb(210, 65, 35)
+    material => houseColors[material] ?? rgb(210, 65, 35),
+    () => "metal"
   );
 
   stack.pop();
   stack.pop();
 }
 
-// Cores associadas diretamente aos materiais da palmeira
+// Cores associadas aos materiais da palmeira
 const palmColors = {
   palmeira: rgb(89, 50, 32),
   "Material.001": rgb(27, 123, 0),
 };
 
-// Palmeira com tronco e folhas preservando suas posições originais
+// Propriedades de iluminação de cada parte da palmeira
+const palmMaterials = {
+  palmeira: "matte",
+  "Material.001": "foliage",
+};
+
+// Palmeira com tronco fosco e folhas de material vegetal
 function drawPalm(gl, instance, scenery, stack, drawShape) {
   stack.push(scenery.normalizations.palm);
-
-  const materials = Object.keys(scenery.models.palm.groups);
 
   drawModel(
     gl,
     scenery.models.palm,
     stack,
     drawShape,
-    material => palmColors[material] ?? rgb(89, 50, 32)
+    material => palmColors[material] ?? rgb(89, 50, 32),
+    material => palmMaterials[material] ?? "matte"
   );
 
   stack.pop();
 }
 
-// As duas pedras usam a mesma função, mas normalizações próprias
+// Desenha as pedras com acabamento pouco reflexivo
 function drawRock(gl, instance, scenery, stack, drawShape) {
   const modelName = instance.model;
 
@@ -157,13 +181,14 @@ function drawRock(gl, instance, scenery, stack, drawShape) {
     scenery.models[modelName],
     stack,
     drawShape,
-    () => rgb(150, 140, 125)
+    () => rgb(150, 140, 125),
+    () => "rock"
   );
 
   stack.pop();
 }
 
-// Arbusto feito com três esferas sobrepostas
+// Arbusto formado por três esferas com material vegetal
 function drawBush(gl, instance, scenery, stack, drawShape) {
   const parts = [
     {
@@ -191,7 +216,8 @@ function drawBush(gl, instance, scenery, stack, drawShape) {
       part.scale,
       part.color,
       stack,
-      drawShape
+      drawShape,
+      "foliage"
     );
   }
 }
@@ -225,18 +251,17 @@ function drawGrass(gl, instance, scenery, stack, drawShape) {
       "cone",
       [0, 0.2, 0],
       [0.06, 0.4, 0.06],
-      i % 2 === 0
-        ? rgb(50, 151, 31)
-        : rgb(82, 177, 39),
+      i % 2 === 0 ? rgb(50, 151, 31) : rgb(82, 177, 39),
       stack,
-      drawShape
+      drawShape,
+      "foliage"
     );
 
     stack.pop();
   }
 }
 
-// Guarda-sol com mastro, cobertura e canga
+// Guarda-sol com mastro de madeira e cobertura de tecido
 function drawUmbrella(gl, instance, scenery, stack, drawShape) {
   drawPart(
     gl,
@@ -245,7 +270,8 @@ function drawUmbrella(gl, instance, scenery, stack, drawShape) {
     [0.12, 1.6, 0.12],
     rgb(220, 205, 163),
     stack,
-    drawShape
+    drawShape,
+    "wood"
   );
 
   drawPart(
@@ -255,10 +281,11 @@ function drawUmbrella(gl, instance, scenery, stack, drawShape) {
     [2.0, 0.4, 2.0],
     rgb(235, 58, 43),
     stack,
-    drawShape
+    drawShape,
+    "cloth"
   );
 
-  // A canga acompanha a posição e a rotação do guarda-sol
+  // A canga herda a posição e a rotação do guarda-sol
   stack.push(
     m4.multiply(
       m4.translation([-1.05, 0.13, 0.2]),
@@ -273,19 +300,19 @@ function drawUmbrella(gl, instance, scenery, stack, drawShape) {
     [0.9, 0.03, 1.8],
     rgb(250, 211, 94),
     stack,
-    drawShape
+    drawShape,
+    "cloth"
   );
 
   stack.pop();
 }
 
-// Píer com tábuas e estacas que descem abaixo da água
+// Píer com tábuas e estacas de madeira
 function drawPier(gl, instance, scenery, stack, drawShape) {
   const groundHeight = getGroundHeight(instance.x, instance.z);
 
   const deckHeight = terrainConfig.waterLevel + 0.35;
 
-  // Mantém o píer na mesma altura independentemente do relevo da praia
   stack.push(
     m4.translation([
       0,
@@ -300,11 +327,10 @@ function drawPier(gl, instance, scenery, stack, drawShape) {
       "cube",
       [0, 0, 0.15 + i * 0.29],
       [0.8, 0.12, 0.26],
-      i % 2 === 0
-        ? rgb(155, 102, 57)
-        : rgb(171, 117, 67),
+      i % 2 === 0 ? rgb(155, 102, 57) : rgb(171, 117, 67),
       stack,
-      drawShape
+      drawShape,
+      "wood"
     );
   }
 
@@ -317,7 +343,8 @@ function drawPier(gl, instance, scenery, stack, drawShape) {
         [0.22, 2.0, 0.22],
         rgb(105, 68, 39),
         stack,
-        drawShape
+        drawShape,
+        "wood"
       );
     }
   }

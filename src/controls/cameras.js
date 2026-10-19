@@ -1,5 +1,7 @@
 import { m4, v3, } from "../twgl.full.module.js";
 
+import { getGroundHeight, terrainConfig, } from "../scene/terrain.js";
+
 // Câmera 1: automática
 const camera = {
   distance: 25,
@@ -45,6 +47,9 @@ const freeCamera = {
 
   minPitch: -Math.PI * 17 / 36,
   maxPitch: Math.PI * 17 / 36,
+
+  maxRadius: 40,
+  minHeightAboveGround: 0.4,
 };
 
 // Parâmetros da projeção perspectiva
@@ -164,6 +169,32 @@ function updateOrbitalCamera(input) {
   }
 }
 
+// Mantém a câmera livre dentro da área do diorama
+function clampFreeCameraPosition() {
+  const position = freeCamera.position;
+
+  // 1. Distância máxima: puxa de volta para a esfera de raio maxRadius
+  const distance = Math.hypot(position[0], position[1], position[2]);
+
+  if (distance > freeCamera.maxRadius) {
+    const factor = freeCamera.maxRadius / distance;
+
+    position[0] *= factor;
+    position[1] *= factor;
+    position[2] *= factor;
+  }
+
+  // 2. Altura mínima: acima do chão ou da água, o que estiver mais alto
+  const floor = Math.max(
+    getGroundHeight(position[0], position[2]),
+    terrainConfig.waterLevel
+  ) + freeCamera.minHeightAboveGround;
+
+  if (position[1] < floor) {
+    position[1] = floor;
+  }
+}
+
 // Atualiza a direção e a posição da câmera livre
 function updateFreeCamera(dt, input) {
   freeCamera.yaw -= (input.mouseDelta.x * freeCamera.sensitivity);
@@ -216,6 +247,8 @@ function updateFreeCamera(dt, input) {
       freeCamera.position[i] += (movement[i] / length * freeCamera.speed * dt);
     }
   }
+
+  clampFreeCameraPosition();
 }
 
 // Atualiza somente a câmera selecionada
@@ -262,6 +295,17 @@ function transitionToCamera(previousCamera, nextCamera) {
   );
 }
 
+// Devolve a posição do observador para o cálculo especular
+function getEyePosition(activeCamera = 1) {
+  if (activeCamera === 3) {
+    return freeCamera.position;
+  }
+
+  const orbitCamera = activeCamera === 2 ? orbitalCamera : camera;
+
+  return getCameraPosition(orbitCamera);
+}
+
 // Devolve a matriz de visualização da câmera ativa
 function getViewMatrix(activeCamera = 1) {
   let position;
@@ -306,6 +350,7 @@ export {
   markProjectionDirty,
   updateProjection,
   getCameraPosition,
+  getEyePosition,
   updateCameras,
   transitionToCamera,
   getViewMatrix,

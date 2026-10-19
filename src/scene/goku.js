@@ -28,6 +28,13 @@ const gokuColors = {
   Power_Pole_Sheathed: rgb(150, 40, 30),
 };
 
+// Materiais de iluminação das partes do Goku
+const gokuMaterials = {
+  Body: "cloth",
+  Head: "hair",
+  Power_Pole_Sheathed: "wood",
+};
+
 const tailColor = rgb(120, 80, 40);
 
 // Estado da animação do rabo
@@ -199,14 +206,15 @@ function updateGoku(dt) {
   gokuState.time += dt;
 }
 
-// Desenha todos os materiais do modelo
-function drawModel(gl, model, stack, drawShape, getColor) {
+// Desenha os materiais do modelo com propriedades de Phong
+function drawModel(gl, model, stack, drawShape, getColor, getMaterial = () => "matte") {
   for (const [material, geometry] of Object.entries(model.groups)) {
     drawShape(
       gl,
       geometry,
       stack.current(),
-      getColor(material)
+      getColor(material),
+      getMaterial(material)
     );
   }
 }
@@ -226,13 +234,14 @@ function drawGoku(gl, goku, poseIndex, stack, drawShape, setTailWave) {
   // Converte os vértices para a escala comum das três poses
   stack.push(pose.normalization);
 
-  // Desenha o corpo, que permanece fixo na pose
+  // Desenha o corpo com o material correspondente a cada parte
   drawModel(
     gl,
     pose.body,
     stack,
     drawShape,
-    material => gokuColors[material] ?? rgb(52, 56, 120)
+    material => gokuColors[material] ?? rgb(52, 56, 120),
+    material => gokuMaterials[material] ?? "cloth"
   );
 
   // Combina dois movimentos senoidais para o rabo
@@ -273,12 +282,14 @@ function drawGoku(gl, goku, poseIndex, stack, drawShape, setTailWave) {
     time: gokuState.time
   });
 
+  // Desenha o rabo com material próprio
   drawModel(
     gl,
     pose.tail,
     stack,
     drawShape,
-    () => tailColor
+    () => tailColor,
+    () => "hair"
   );
 
   //Desliga a onda

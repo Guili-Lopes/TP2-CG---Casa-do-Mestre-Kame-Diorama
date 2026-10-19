@@ -1,10 +1,10 @@
 import { m4, } from "../twgl.full.module.js";
 
-import { terrainConfig, } from "../scene/terrain.js";
+import { terrainConfig, } from "./terrain.js";
 
-// Desenha as três partes principais do diorama
+// Desenha as partes principais do diorama com seus materiais
 function drawWorld(gl, drawShape) {
-  // Hemisfério inferior
+  // Hemisfério inferior com acabamento polido
   drawShape(
     gl,
     "lowerHemisphere",
@@ -13,18 +13,20 @@ function drawWorld(gl, drawShape) {
       terrainConfig.hemisphereDepth,
       terrainConfig.domeRadius,
     ]),
-    [1.0, 0.5, 0.1]
+    [1.0, 0.5, 0.1],
+    "glossy"
   );
 
-  // Terreno deformado pelo height map
+  // Terreno fosco
   drawShape(
     gl,
     "terrain",
     m4.identity(),
-    [0.3, 0.75, 0.25]
+    [0.3, 0.75, 0.25],
+    "matte"
   );
 
-  // Água provisória
+  // Água provisória com acabamento polido
   drawShape(
     gl,
     "disc",
@@ -36,7 +38,8 @@ function drawWorld(gl, drawShape) {
         terrainConfig.domeRadius,
       ]
     ),
-    [0.05, 0.42, 0.85]
+    [0.05, 0.42, 0.85],
+    "glossy"
   );
 }
 

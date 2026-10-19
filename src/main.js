@@ -4,13 +4,14 @@ import { resizeCanvasToDisplaySize, } from "./twgl.full.module.js";
 import { createSceneGeometries, drawGeometry, } from "./utils/geometry.js";
 import { MatrixStack, } from "./utils/matrix-stack.js";
 
+import { materials, } from "./scene/materials.js";
 import { loadTerrain, } from "./scene/terrain.js";
 import { loadScenery, updateScenery, drawScenery, } from "./scene/scenery.js";
 import { gokuPoses, loadGoku, updateGoku, drawGoku, } from "./scene/goku.js";
 import { drawWorld, } from "./scene/world.js";
 import { updateCloud, drawCloud, } from "./scene/cloud.js";
 
-import { markProjectionDirty, updateProjection, updateCameras, getViewMatrix, } from "./controls/cameras.js";
+import { markProjectionDirty, updateProjection, updateCameras, getViewMatrix, getEyePosition, } from "./controls/cameras.js";
 import { createActionRunner, } from "./controls/actions.js";
 import { initSidebar, updateSidebar, } from "./controls/sidebar.js";
 import { initInput, consumeInput, } from "./controls/input.js";
@@ -24,7 +25,9 @@ const state = {
   },
 
   light: {
-    direction: [1, 1, 1],
+    direction: [0.4, 1, 0.3],
+    color: [1, 1, 1],
+    ambient: [0.3, 0.3, 0.3],
   },
 
   geometries: null,
@@ -41,11 +44,9 @@ const state = {
   timeOfDay: 12,
 };
 
-// Desenha uma primitiva ou geometria OBJ com matriz e cor próprias
-function drawShape(gl, geometry, modelMatrix, color) {
-  const geometryData = typeof geometry === "string"
-    ? state.geometries[geometry]
-    : geometry;
+// Desenha uma geometria usando a cor e as propriedades do material
+function drawShape(gl, geometry, modelMatrix, color, material = "matte") {
+  const geometryData = typeof geometry === "string" ? state.geometries[geometry] : geometry;
 
   if (!geometryData) {
     throw new Error(`Geometria não encontrada: ${geometry}`);
@@ -53,13 +54,40 @@ function drawShape(gl, geometry, modelMatrix, color) {
 
   const locations = state.program.locations;
 
-  gl.uniformMatrix4fv(locations.u_model, false, modelMatrix);
-  gl.uniform3fv(locations.u_color, color);
+  const surface = materials[material] ?? materials.matte;
+
+  gl.uniformMatrix4fv(
+    locations.u_model,
+    false,
+    modelMatrix
+  );
+
+  gl.uniform3fv(
+    locations.u_color,
+    color
+  );
+
+  gl.uniform3f(
+    locations.u_specularColor,
+    surface.specular,
+    surface.specular,
+    surface.specular
+  );
+
+  gl.uniform1f(
+    locations.u_shininess,
+    surface.shininess
+  );
+
+  gl.uniform1i(
+    locations.u_unlit,
+    surface.unlit ? 1 : 0
+  );
 
   drawGeometry(gl, geometryData);
 }
 
-// Liga a onda do rabo com os parâmetros da pose, ou desliga com null
+// Controla a deformação do rabo apenas durante seu desenho
 function setTailWave(gl, wave) {
   const locations = state.program.locations;
 
@@ -75,7 +103,7 @@ function setTailWave(gl, wave) {
   gl.uniform1f(locations.u_time, wave.time);
 }
 
-// Inicializa o programa, os modelos e os controles
+// Inicializa o programa, as geometrias e os controles
 async function initialize(gl) {
   state.program.id = await createProgramFromFiles(
     gl,
@@ -86,8 +114,25 @@ async function initialize(gl) {
   const locations = getLocations(
     gl,
     state.program.id,
-    ["u_model", "u_view", "u_projection", "u_color", "u_lightDirection", "u_tailWave", 
-      "u_tailPivot", "u_tailLength", "u_tailPivot", "u_tailLength", "u_waveAxis", "u_time"],
+    [
+      "u_model",
+      "u_view",
+      "u_projection",
+      "u_color",
+      "u_specularColor",
+      "u_shininess",
+      "u_lightDirection",
+      "u_lightColor",
+      "u_ambientLight",
+      "u_cameraPosition",
+      "u_lightingEnabled",
+      "u_unlit",
+      "u_tailWave",
+      "u_tailPivot",
+      "u_tailLength",
+      "u_waveAxis",
+      "u_time",
+    ],
     ["a_coords", "a_normal", "a_texcoord"]
   );
 
@@ -96,11 +141,6 @@ async function initialize(gl) {
   gl.useProgram(state.program.id);
   gl.enable(gl.DEPTH_TEST);
   gl.enable(gl.CULL_FACE);
-
-  gl.uniform3fv(
-    locations.u_lightDirection,
-    state.light.direction
-  );
 
   state.geometries = createSceneGeometries(gl, locations);
 
@@ -111,8 +151,6 @@ async function initialize(gl) {
   );
 
   state.scenery = await loadScenery(gl, locations);
-
-  // Carrega as três poses após a inicialização do terreno
   state.goku = await loadGoku(gl, locations);
 
   gl.clearColor(0.53, 0.81, 0.92, 1.0);
@@ -124,20 +162,16 @@ async function initialize(gl) {
   updateSidebar(state);
 }
 
-// Atualiza as câmeras e os elementos animados da cena
+// Atualiza câmeras e animações
 function update(dt) {
-  updateCameras(
-    dt,
-    state.activeCamera,
-    consumeInput()
-  );
+  updateCameras(dt, state.activeCamera, consumeInput());
 
   updateCloud(dt);
   updateScenery(dt);
   updateGoku(dt);
 }
 
-// Desenha o mundo, o cenário, o Goku e a nuvem
+// Desenha a cena com iluminação de Phong
 function render(gl) {
   const pixelRatio = Math.min(window.devicePixelRatio, 2);
 
@@ -154,10 +188,37 @@ function render(gl) {
 
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+  // Atualiza a posição e a visualização da câmera ativa
   gl.uniformMatrix4fv(
     locations.u_view,
     false,
     getViewMatrix(state.activeCamera)
+  );
+
+  gl.uniform3fv(
+    locations.u_cameraPosition,
+    getEyePosition(state.activeCamera)
+  );
+
+  // Atualiza a iluminação direcional a cada quadro
+  gl.uniform3fv(
+    locations.u_lightDirection,
+    state.light.direction
+  );
+
+  gl.uniform3fv(
+    locations.u_lightColor,
+    state.light.color
+  );
+
+  gl.uniform3fv(
+    locations.u_ambientLight,
+    state.light.ambient
+  );
+
+  gl.uniform1i(
+    locations.u_lightingEnabled,
+    state.lightingEnabled ? 1 : 0
   );
 
   drawWorld(gl, drawShape);
@@ -166,8 +227,14 @@ function render(gl) {
 
   drawScenery(gl, state.scenery, matrixStack, drawShape);
 
-  // Desenha somente a pose selecionada na barra lateral
-  drawGoku(gl, state.goku, state.poseIndex, matrixStack, drawShape, setTailWave);
+  drawGoku(
+    gl,
+    state.goku,
+    state.poseIndex,
+    matrixStack,
+    drawShape,
+    setTailWave
+  );
 
   drawCloud(gl, matrixStack, drawShape);
 }
