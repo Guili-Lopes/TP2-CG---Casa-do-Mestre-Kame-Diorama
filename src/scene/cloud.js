@@ -62,7 +62,7 @@ function drawCloud(gl, stack, drawShape) {
       "sphere",
       stack.current(),
       cloudColor,
-      "none"
+      "cloud"
     );
 
     stack.pop();

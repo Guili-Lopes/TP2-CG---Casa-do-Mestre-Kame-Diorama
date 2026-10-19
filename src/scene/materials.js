@@ -66,6 +66,12 @@ const materials = {
     unlit: false,
   },
 
+  cloud: {
+    specular: 0.05,
+    shininess: 4,
+    unlit: false,
+  },
+
   // Material sem iluminação para elementos estilizados
   none: {
     specular: 0,

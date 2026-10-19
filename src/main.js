@@ -25,9 +25,9 @@ const state = {
   },
 
   light: {
-    direction: [0.4, 1, 0.3],
-    color: [1, 1, 1],
-    ambient: [0.3, 0.3, 0.3],
+    direction: [0.4, 1.0, 0.3],
+    color: [0.85, 0.83, 0.78],
+    ambient: [0.22, 0.24, 0.28],
   },
 
   geometries: null,
