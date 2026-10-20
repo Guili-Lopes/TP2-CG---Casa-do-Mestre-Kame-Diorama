@@ -9,7 +9,7 @@ const terrainConfig = {
   waterLevel: 0,
   minHeight: -1.0,
   maxHeight: 1.5,
-  hemisphereDepth: 6,
+  hemisphereDepth: 8,
 };
 
 let heightMap = null;

@@ -72,6 +72,13 @@ const materials = {
     unlit: false,
   },
 
+  dragonBall: {
+    specular: 0.6,
+    shininess: 60,
+    emissive: 0.35,
+    unlit: false,
+  },
+
   // Material sem iluminação para elementos estilizados
   none: {
     specular: 0,

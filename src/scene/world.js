@@ -2,9 +2,9 @@ import { m4, } from "../twgl.full.module.js";
 
 import { terrainConfig, } from "./terrain.js";
 
-// Desenha as partes principais do diorama com seus materiais
+// Desenha o hemisfério, o terreno e a água
 function drawWorld(gl, drawShape) {
-  // Hemisfério inferior com acabamento polido
+  // Hemisfério com textura da Esfera do Dragão
   drawShape(
     gl,
     "lowerHemisphere",
@@ -13,25 +13,31 @@ function drawWorld(gl, drawShape) {
       terrainConfig.hemisphereDepth,
       terrainConfig.domeRadius,
     ]),
-    [1.0, 0.5, 0.1],
-    "glossy"
+    [1, 1, 1],
+    "dragonBall",
+    "dome"
   );
 
-  // Terreno fosco
+  // Terreno com textura de areia e grama
   drawShape(
     gl,
     "terrain",
     m4.identity(),
-    [0.3, 0.75, 0.25],
-    "matte"
+    [1, 1, 1],
+    "matte",
+    "island"
   );
 
-  // Água provisória com acabamento polido
+  // Água provisória, ainda sem textura
   drawShape(
     gl,
     "disc",
     m4.scale(
-      m4.translation([0, terrainConfig.waterLevel, 0]),
+      m4.translation([
+        0,
+        terrainConfig.waterLevel,
+        0,
+      ]),
       [
         terrainConfig.domeRadius,
         1,

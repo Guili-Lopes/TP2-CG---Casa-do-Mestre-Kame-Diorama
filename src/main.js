@@ -1,5 +1,6 @@
 import { createProgramFromFiles, } from "./utils/shaders.js";
 import { getLocations, } from "./utils/program.js";
+import { textureSources, loadTexture, } from "./utils/texture.js";
 import { resizeCanvasToDisplaySize, } from "./twgl.full.module.js";
 import { createSceneGeometries, drawGeometry, } from "./utils/geometry.js";
 import { MatrixStack, } from "./utils/matrix-stack.js";
@@ -31,6 +32,7 @@ const state = {
   },
 
   geometries: null,
+  textures: null,
   scenery: null,
   goku: null,
 
@@ -44,16 +46,24 @@ const state = {
   timeOfDay: 12,
 };
 
-// Desenha uma geometria usando a cor e as propriedades do material
-function drawShape(gl, geometry, modelMatrix, color, material = "matte") {
-  const geometryData = typeof geometry === "string" ? state.geometries[geometry] : geometry;
+// Desenha uma geometria com cor, material e textura opcionais
+function drawShape(
+  gl,
+  geometry,
+  modelMatrix,
+  color,
+  material = "matte",
+  texture = null
+) {
+  const geometryData = typeof geometry === "string"
+    ? state.geometries[geometry]
+    : geometry;
 
   if (!geometryData) {
     throw new Error(`Geometria não encontrada: ${geometry}`);
   }
 
   const locations = state.program.locations;
-
   const surface = materials[material] ?? materials.matte;
 
   gl.uniformMatrix4fv(
@@ -84,6 +94,32 @@ function drawShape(gl, geometry, modelMatrix, color, material = "matte") {
     surface.unlit ? 1 : 0
   );
 
+  gl.uniform1f(
+    locations.u_emissive,
+    surface.emissive ?? 0
+  );
+
+  // Seleciona a textura, caso o objeto possua uma
+  const textureData = typeof texture === "string" ? state.textures?.[texture] : texture;
+
+  if (texture && !textureData) {
+    throw new Error(`Textura não encontrada: ${texture}`);
+  }
+
+  if (textureData) {
+    gl.activeTexture(gl.TEXTURE0);
+
+    gl.bindTexture(
+      gl.TEXTURE_2D,
+      textureData
+    );
+  }
+
+  gl.uniform1i(
+    locations.u_useTexture,
+    textureData ? 1 : 0
+  );
+
   drawGeometry(gl, geometryData);
 }
 
@@ -103,7 +139,7 @@ function setTailWave(gl, wave) {
   gl.uniform1f(locations.u_time, wave.time);
 }
 
-// Inicializa o programa, as geometrias e os controles
+// Inicializa os programas, modelos, texturas e controles
 async function initialize(gl) {
   state.program.id = await createProgramFromFiles(
     gl,
@@ -119,6 +155,8 @@ async function initialize(gl) {
       "u_view",
       "u_projection",
       "u_color",
+      "u_texture",
+      "u_useTexture",
       "u_specularColor",
       "u_shininess",
       "u_lightDirection",
@@ -132,6 +170,7 @@ async function initialize(gl) {
       "u_tailLength",
       "u_waveAxis",
       "u_time",
+      "u_emissive",
     ],
     ["a_coords", "a_normal", "a_texcoord"]
   );
@@ -142,7 +181,16 @@ async function initialize(gl) {
   gl.enable(gl.DEPTH_TEST);
   gl.enable(gl.CULL_FACE);
 
-  state.geometries = createSceneGeometries(gl, locations);
+  // O sampler2D utiliza a unidade de textura zero
+  gl.uniform1i(
+    locations.u_texture,
+    0
+  );
+
+  state.geometries = createSceneGeometries(
+    gl,
+    locations
+  );
 
   state.geometries.terrain = await loadTerrain(
     gl,
@@ -152,6 +200,21 @@ async function initialize(gl) {
 
   state.scenery = await loadScenery(gl, locations);
   state.goku = await loadGoku(gl, locations);
+
+  // Carrega todas as texturas em paralelo
+  const textureEntries = await Promise.all(
+    Object.entries(textureSources).map(async ([name, options]) => {
+      const texture = await loadTexture(
+        gl,
+        options.url,
+        options
+      );
+
+      return [name, texture];
+    })
+  );
+
+  state.textures = Object.fromEntries(textureEntries);
 
   gl.clearColor(0.53, 0.81, 0.92, 1.0);
 
@@ -164,21 +227,37 @@ async function initialize(gl) {
 
 // Atualiza câmeras e animações
 function update(dt) {
-  updateCameras(dt, state.activeCamera, consumeInput());
+  updateCameras(
+    dt,
+    state.activeCamera,
+    consumeInput()
+  );
 
   updateCloud(dt);
   updateScenery(dt);
   updateGoku(dt);
 }
 
-// Desenha a cena com iluminação de Phong
+// Desenha a cena com materiais e texturas
 function render(gl) {
-  const pixelRatio = Math.min(window.devicePixelRatio, 2);
+  const pixelRatio = Math.min(
+    window.devicePixelRatio,
+    2
+  );
 
-  const resized = resizeCanvasToDisplaySize(gl.canvas, pixelRatio);
+  const resized = resizeCanvasToDisplaySize(
+    gl.canvas,
+    pixelRatio
+  );
 
   if (resized) {
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    gl.viewport(
+      0,
+      0,
+      gl.canvas.width,
+      gl.canvas.height
+    );
+
     markProjectionDirty();
   }
 
@@ -186,9 +265,12 @@ function render(gl) {
 
   updateProjection(gl, locations.u_projection);
 
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.clear(
+    gl.COLOR_BUFFER_BIT |
+    gl.DEPTH_BUFFER_BIT
+  );
 
-  // Atualiza a posição e a visualização da câmera ativa
+  // Envia a câmera ativa ao shader
   gl.uniformMatrix4fv(
     locations.u_view,
     false,
@@ -200,7 +282,7 @@ function render(gl) {
     getEyePosition(state.activeCamera)
   );
 
-  // Atualiza a iluminação direcional a cada quadro
+  // Envia os parâmetros da luz direcional
   gl.uniform3fv(
     locations.u_lightDirection,
     state.light.direction
@@ -221,12 +303,20 @@ function render(gl) {
     state.lightingEnabled ? 1 : 0
   );
 
+  // Desenha o palco do diorama
   drawWorld(gl, drawShape);
 
   matrixStack.reset();
 
-  drawScenery(gl, state.scenery, matrixStack, drawShape);
+  // Desenha os modelos e objetos da cena
+  drawScenery(
+    gl,
+    state.scenery,
+    matrixStack,
+    drawShape
+  );
 
+  // Desenha a pose atual do Goku
   drawGoku(
     gl,
     state.goku,
@@ -236,7 +326,12 @@ function render(gl) {
     setTailWave
   );
 
-  drawCloud(gl, matrixStack, drawShape);
+  // Desenha a nuvem sem textura
+  drawCloud(
+    gl,
+    matrixStack,
+    drawShape
+  );
 }
 
 export { initialize, update, render, state, };

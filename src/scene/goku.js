@@ -35,6 +35,13 @@ const gokuMaterials = {
   Power_Pole_Sheathed: "wood",
 };
 
+// Texturas dos materiais do Goku
+const gokuTextures = {
+  Body: "goku",
+  Head: "goku",
+  Power_Pole_Sheathed: "powerPole",
+};
+
 const tailColor = rgb(120, 80, 40);
 
 // Estado da animação do rabo
@@ -206,15 +213,24 @@ function updateGoku(dt) {
   gokuState.time += dt;
 }
 
-// Desenha os materiais do modelo com propriedades de Phong
-function drawModel(gl, model, stack, drawShape, getColor, getMaterial = () => "matte") {
+// Desenha os grupos do Goku com materiais e texturas
+function drawModel(
+  gl,
+  model,
+  stack,
+  drawShape,
+  getColor,
+  getMaterial = () => "matte",
+  getTexture = () => null
+) {
   for (const [material, geometry] of Object.entries(model.groups)) {
     drawShape(
       gl,
       geometry,
       stack.current(),
       getColor(material),
-      getMaterial(material)
+      getMaterial(material),
+      getTexture(material)
     );
   }
 }
@@ -234,14 +250,15 @@ function drawGoku(gl, goku, poseIndex, stack, drawShape, setTailWave) {
   // Converte os vértices para a escala comum das três poses
   stack.push(pose.normalization);
 
-  // Desenha o corpo com o material correspondente a cada parte
+  // Corpo, rosto, cabelo e bastão com as texturas originais
   drawModel(
     gl,
     pose.body,
     stack,
     drawShape,
-    material => gokuColors[material] ?? rgb(52, 56, 120),
-    material => gokuMaterials[material] ?? "cloth"
+    material => gokuTextures[material] ? rgb(255, 255, 255) : gokuColors[material] ?? rgb(52, 56, 120),
+    material => gokuMaterials[material] ?? "cloth",
+    material => gokuTextures[material] ?? null
   );
 
   // Combina dois movimentos senoidais para o rabo
@@ -282,14 +299,15 @@ function drawGoku(gl, goku, poseIndex, stack, drawShape, setTailWave) {
     time: gokuState.time
   });
 
-  // Desenha o rabo com material próprio
+  // O rabo utiliza a mesma textura do corpo do Goku
   drawModel(
     gl,
     pose.tail,
     stack,
     drawShape,
-    () => tailColor,
-    () => "hair"
+    () => rgb(255, 255, 255),
+    () => "hair",
+    () => "goku"
   );
 
   //Desliga a onda
