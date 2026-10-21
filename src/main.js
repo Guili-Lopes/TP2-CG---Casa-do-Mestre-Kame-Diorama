@@ -49,6 +49,11 @@ const state = {
     ambient: [0.22, 0.24, 0.28],
   },
 
+  fog: {
+    color: [0.68, 0.75, 0.69],
+    density: 0.02,
+  },
+
   geometries: null,
   textures: null,
   scenery: null,
@@ -241,6 +246,9 @@ async function initialize(gl) {
     "u_time",
     "u_shadowMap",
     "u_lightViewProjection",
+    "u_fogEnabled",
+    "u_fogColor",
+    "u_fogDensity",
   ];
 
   const attributeNames = [
@@ -263,10 +271,10 @@ async function initialize(gl) {
     attributeNames
   );
 
-  state.skyboxProgram.locations = getLocations(
+ state.skyboxProgram.locations = getLocations(
     gl,
     state.skyboxProgram.id,
-    ["u_view", "u_projection", "u_skybox"],
+    ["u_view", "u_projection", "u_skybox", "u_fogEnabled", "u_fogColor"],
     ["a_coords"]
   );
 
@@ -425,6 +433,17 @@ function drawSkybox(gl, viewMatrix, projectionMatrix) {
     projectionMatrix
   );
 
+  // Aplica a mesma cor da neblina ao horizonte do céu
+  gl.uniform1i(
+    locations.u_fogEnabled,
+    state.fogEnabled ? 1 : 0
+  );
+  
+  gl.uniform3fv(
+    locations.u_fogColor, 
+    state.fog.color
+  );
+
   // Cubemap na unidade de textura dois
   gl.activeTexture(gl.TEXTURE2);
 
@@ -519,6 +538,22 @@ function renderMainPass(gl, lightViewProjection) {
   gl.uniform1i(
     locations.u_lightingEnabled,
     state.lightingEnabled ? 1 : 0
+  );
+
+  // Configura a neblina na cena principal
+  gl.uniform1i(
+    locations.u_fogEnabled, 
+    state.fogEnabled ? 1 : 0
+  );
+
+  gl.uniform3fv(
+    locations.u_fogColor,
+    state.fog.color
+  );
+
+  gl.uniform1f(
+    locations.u_fogDensity, 
+    state.fog.density
   );
 
   // Projeção da luz utilizada no shadow mapping

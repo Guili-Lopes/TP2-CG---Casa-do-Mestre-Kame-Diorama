@@ -58,7 +58,7 @@ WebGL2 puro com shaders GLSL ES 3.0, e a [TWGL.js](https://twgljs.org/) para uti
 ## (d) Opcionais
 
 
-- [ ] **1. Neblina**
+- [x] **1. Neblina**
   > 🌟 Neblina: funcionalidade acrescentada por comando do teclado (N), podendo ser habilitada e desabilitada durante a execução
 
   _Na cena:_ névoa do mar com a cor do horizonte, alternada pela tecla <kbd>N</kbd>.
