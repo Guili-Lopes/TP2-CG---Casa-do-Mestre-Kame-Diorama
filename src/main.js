@@ -21,11 +21,15 @@ import { initInput, consumeInput, } from "./controls/input.js";
 
 const matrixStack = new MatrixStack();
 
+const mainProgram = {
+  id: null,
+  locations: {},
+};
+
 const state = {
-  program: {
-    id: null,
-    locations: {},
-  },
+  mainProgram,
+
+  program: mainProgram,
 
   shadowProgram: {
     id: null,
@@ -183,7 +187,7 @@ function drawScene(gl) {
 
 // Inicializa os programas, os modelos e o shadow map
 async function initialize(gl) {
-  const mainProgram = state.program;
+  const mainProgram = state.mainProgram;
 
   mainProgram.id = await createProgramFromFiles(
     gl,
@@ -353,9 +357,13 @@ function renderShadowPass(gl, lightViewProjection) {
   gl.enable(gl.POLYGON_OFFSET_FILL);
   gl.polygonOffset(1.0, 1.0);
 
-  drawScene(gl);
+  try{
+    drawScene(gl);
+  } finally {
+    gl.disable(gl.POLYGON_OFFSET_FILL);
+    state.program = state.mainProgram;
+  }
 
-  gl.disable(gl.POLYGON_OFFSET_FILL);
 }
 
 // Segunda passada: renderiza a cena com o shadow map
@@ -451,7 +459,7 @@ function render(gl) {
     markProjectionDirty();
   }
 
-  const mainProgram = state.program;
+  const mainProgram = state.mainProgram;
 
   // Atualiza a matriz da luz em cada quadro
   const lightViewProjection = getLightViewProjection(

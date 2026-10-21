@@ -130,6 +130,12 @@ WebGL2 puro com shaders GLSL ES 3.0, e a [TWGL.js](https://twgljs.org/) para uti
 
   _Na cena:_ Kame House, Goku (nas três poses), palmeiras e pedras, carregados por um leitor de `.obj` próprio que separa as malhas por material.
 
+ - [x] **15. Sombras**
+  
+ > 💣 Sombras: faça objetos projetarem sombras de acordo com a(s) fonte(s) de luz da cena
+  
+  _Na cena:_ shadow mapping com a luz direcional do sol, renderizado em duas passadas (mapa de profundidade num FBO e teste com PCF 3×3 no fragment shader). Os objetos, o relevo da ilha e a nuvem voadora projetam sombras.
+
 ### Detalhes extras
 
 - **Objeto hierárquico:** o catavento da Kame House — a casa e a haste formam a estrutura fixa, e o galo é a parte giratória, desenhado como filho da casa na pilha de matrizes.
