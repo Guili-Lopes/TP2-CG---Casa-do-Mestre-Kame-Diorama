@@ -78,7 +78,7 @@ WebGL2 puro com shaders GLSL ES 3.0, e a [TWGL.js](https://twgljs.org/) para uti
 
   _Na cena:_ aura de ki em volta do Goku.
 
-- [ ] **5. Fontes de luz pontuais**
+- [x] **5. Fontes de luz pontuais**
   > Fontes de luz pontuais: coloque fontes de luz em alguns objetos do cenário (eg, luz no poste ou uma poça de gosma radioativa)
 
   _Na cena:_ lâmpada da varanda da casa e o brilho laranja das esferas do dragão à noite.

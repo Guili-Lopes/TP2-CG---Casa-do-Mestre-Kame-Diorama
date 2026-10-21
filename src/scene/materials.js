@@ -79,6 +79,12 @@ const materials = {
     unlit: false,
   },
 
+  lamp: {
+    specular: 0,
+    shininess: 1,
+    unlit: true,
+  },
+
   // Material sem iluminação para elementos estilizados
   none: {
     specular: 0,

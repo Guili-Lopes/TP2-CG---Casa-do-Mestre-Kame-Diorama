@@ -65,6 +65,18 @@ const roosterState = {
 // Pivô do galo nas coordenadas originais do modelo OBJ
 const roosterPivot = [-0.0043, 0, 1.9233];
 
+// Lâmpada da varanda e suas propriedades luminosas
+const porchLight = {
+  position: [0, 0, 0],
+  color: [1.5, 1.125, 0.675],
+};
+
+// Coordenadas da lâmpada no modelo original da casa
+const porchLamp = {
+  base: [1.185, 2.60, 2.00],
+  bulb: [1.185, 2.60, 2.14],
+};
+
 // Atualiza a rotação do galo com base no tempo
 function updateScenery(dt) {
   roosterState.angle = (
@@ -125,9 +137,15 @@ function drawPart(
   stack.pop();
 }
 
-// Casa com grupos texturizados e galo metálico hierárquico
+// Casa com materiais próprios, lâmpada e galo hierárquico
 function drawHouse(gl, instance, scenery, stack, drawShape) {
   stack.push(scenery.normalizations.house);
+
+  // Atualiza a posição da luz no espaço do mundo
+  porchLight.position = m4.transformPoint(
+    stack.current(),
+    porchLamp.bulb
+  );
 
   // Desenha os materiais da casa com ou sem textura
   drawModel(
@@ -140,9 +158,41 @@ function drawHouse(gl, instance, scenery, stack, drawShape) {
     material => houseTextures[material] ?? null
   );
 
+  // Base metálica da lâmpada, perpendicular à parede
+  stack.push(
+    m4.multiply(
+      m4.translation(porchLamp.base),
+      m4.rotationX(Math.PI / 2)
+    )
+  );
+
+  drawPart(
+    gl,
+    "cylinder",
+    [0, 0, 0],
+    [0.20, 0.08, 0.20],
+    rgb(175, 175, 175),
+    stack,
+    drawShape,
+    "metal"
+  );
+
+  stack.pop();
+
+  // Bulbo luminoso como filho da casa
+  drawPart(
+    gl,
+    "sphere",
+    porchLamp.bulb,
+    [0.13, 0.13, 0.13],
+    rgb(255, 225, 160),
+    stack,
+    drawShape,
+    "lamp"
+  );
+
   // Rotaciona o galo em torno do eixo da haste
   const translation = m4.translation(roosterPivot);
-
   const rotation = m4.rotationY(roosterState.angle);
 
   const inverseTranslation = m4.translation([
@@ -158,7 +208,6 @@ function drawHouse(gl, instance, scenery, stack, drawShape) {
 
   stack.push(roosterMatrix);
 
-  // O galo continua com cor sólida e material metálico
   drawModel(
     gl,
     scenery.models.rooster,
@@ -560,4 +609,4 @@ function drawScenery(gl, scenery, stack, drawShape) {
   }
 }
 
-export { loadScenery, createScenery, updateScenery, drawScenery, };
+export { porchLight, loadScenery, createScenery, updateScenery, drawScenery, };

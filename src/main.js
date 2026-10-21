@@ -8,7 +8,7 @@ import { MatrixStack, } from "./utils/matrix-stack.js";
 
 import { materials, } from "./scene/materials.js";
 import { loadTerrain, } from "./scene/terrain.js";
-import { loadScenery, updateScenery, drawScenery, } from "./scene/scenery.js";
+import { porchLight, loadScenery, updateScenery, drawScenery, } from "./scene/scenery.js";
 import { gokuPoses, loadGoku, updateGoku, drawGoku, } from "./scene/goku.js";
 import { drawWorld, } from "./scene/world.js";
 import { updateCloud, drawCloud, } from "./scene/cloud.js";
@@ -47,7 +47,10 @@ const state = {
     direction: [0.4, 1.0, 0.3],
     color: [0.85, 0.83, 0.78],
     ambient: [0.22, 0.24, 0.28],
+    pointAttenuation: [1.0, 0.7, 1.8],
   },
+
+  pointLights: [porchLight],
 
   fog: {
     color: [0.68, 0.75, 0.69],
@@ -249,6 +252,10 @@ async function initialize(gl) {
     "u_fogEnabled",
     "u_fogColor",
     "u_fogDensity",
+    "u_pointLightCount",
+    "u_pointLightPositions[0]",
+    "u_pointLightColors[0]",
+    "u_pointLightAttenuation",
   ];
 
   const attributeNames = [
@@ -474,6 +481,34 @@ function drawSkybox(gl, viewMatrix, projectionMatrix) {
   }
 }
 
+// Envia até oito fontes de luz pontuais ao shader
+function uploadPointLights(gl, locations) {
+  const maxLights = 8;
+  const activeLights = state.pointLights.slice(0, maxLights);
+
+  const positions = new Float32Array(activeLights.length * 3);
+  const colors = new Float32Array(activeLights.length * 3);
+
+  for (let i = 0; i < activeLights.length; i++) {
+    const light = activeLights[i];
+
+    positions.set(light.position, i * 3);
+    colors.set(light.color, i * 3);
+  }
+
+  gl.uniform1i(locations.u_pointLightCount, activeLights.length);
+
+  gl.uniform3fv(
+    locations.u_pointLightAttenuation,
+    state.light.pointAttenuation
+  );
+
+  if (activeLights.length > 0) {
+    gl.uniform3fv(locations["u_pointLightPositions[0]"], positions);
+    gl.uniform3fv(locations["u_pointLightColors[0]"], colors);
+  }
+}
+
 // Segunda passada: desenha a cena e depois o céu
 function renderMainPass(gl, lightViewProjection) {
   const mainProgram = state.mainProgram;
@@ -550,6 +585,9 @@ function renderMainPass(gl, lightViewProjection) {
     locations.u_fogColor,
     state.fog.color
   );
+
+  // Envia as luzes pontuais da cena
+  uploadPointLights(gl, locations);
 
   gl.uniform1f(
     locations.u_fogDensity, 

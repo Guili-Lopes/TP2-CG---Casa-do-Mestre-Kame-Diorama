@@ -23,6 +23,14 @@ uniform vec3 u_lightDirection;
 uniform vec3 u_lightColor;
 uniform vec3 u_ambientLight;
 
+// Até oito fontes de luz pontuais
+const int MAX_POINT_LIGHTS = 8;
+
+uniform int u_pointLightCount;
+uniform vec3 u_pointLightPositions[MAX_POINT_LIGHTS];
+uniform vec3 u_pointLightColors[MAX_POINT_LIGHTS];
+uniform vec3 u_pointLightAttenuation;
+
 // Posição da câmera
 uniform vec3 u_cameraPosition;
 
@@ -75,7 +83,7 @@ float calculateShadow(vec3 normal, vec3 lightDirection) {
     return shadow / 9.0;
 }
 
-// Calcula o modelo de iluminação de Phong com sombras
+// Calcula Phong com luz direcional, sombras e luzes pontuais
 vec3 calculatePhongLighting(vec3 normal, vec3 albedo) {
     vec3 n = normalize(normal);
     vec3 l = normalize(u_lightDirection);
@@ -83,7 +91,10 @@ vec3 calculatePhongLighting(vec3 normal, vec3 albedo) {
 
     float diffuseFactor = max(dot(n, l), 0.0);
 
+    // Componente ambiente global
     vec3 ambient = albedo * u_ambientLight;
+
+    // Componente difusa da luz direcional
     vec3 diffuse = albedo * u_lightColor * diffuseFactor;
     vec3 specular = vec3(0.0);
 
@@ -94,9 +105,50 @@ vec3 calculatePhongLighting(vec3 normal, vec3 albedo) {
         specular = u_specularColor * u_lightColor * specularFactor;
     }
 
+    // O shadow map afeta somente a luz direcional
     float shadow = calculateShadow(n, l);
 
-    return ambient + (diffuse + specular) * (1.0 - shadow);
+    vec3 result = ambient + (diffuse + specular) * (1.0 - shadow);
+
+    // Soma a contribuição de cada luz pontual ativa
+    for (int i = 0; i < MAX_POINT_LIGHTS; i++) {
+        if (i >= u_pointLightCount) {
+            break;
+        }
+
+        // Direção e distância do fragmento até a fonte
+        vec3 toLight = u_pointLightPositions[i] - v_worldPos;
+        float d = length(toLight);
+        vec3 pointDirection = toLight / max(d, 0.0001);
+
+        vec3 lightColor = u_pointLightColors[i];
+
+        // Componente difusa da luz pontual
+        float pointDiffuseFactor = max(dot(n, pointDirection), 0.0);
+        vec3 pointDiffuse = albedo * lightColor * pointDiffuseFactor;
+
+        // Componente especular da luz pontual
+        vec3 pointSpecular = vec3(0.0);
+
+        if (pointDiffuseFactor > 0.0) {
+            vec3 r = reflect(-pointDirection, n);
+            float pointSpecularFactor = pow(max(dot(r, v), 0.0), u_shininess);
+
+            pointSpecular = u_specularColor * lightColor * pointSpecularFactor;
+        }
+
+        // Atenuação: 1 / (a + b*d + c*d²)
+        float a = u_pointLightAttenuation.x;
+        float b = u_pointLightAttenuation.y;
+        float c = u_pointLightAttenuation.z;
+
+        float attenuation = 1.0 / max(a + b * d + c * d * d, 0.0001);
+
+        // Somente as componentes difusa e especular são atenuadas
+        result += attenuation * (pointDiffuse + pointSpecular);
+    }
+
+    return result;
 }
 
 // Aplica a neblina conforme a distância até a câmera
