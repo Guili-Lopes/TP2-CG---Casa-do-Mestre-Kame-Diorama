@@ -1,14 +1,15 @@
 #version 300 es
 
-in vec3 a_coords;
-in vec3 a_normal;
-in vec2 a_texcoord;
+// Localizações fixas para compartilhar VAOs entre os programas
+layout(location = 0) in vec3 a_coords;
+layout(location = 1) in vec3 a_normal;
+layout(location = 2) in vec2 a_texcoord;
 
 uniform mat4 u_model;
 uniform mat4 u_view;
 uniform mat4 u_projection;
 
-// Controles da ondulação do rabo do Goku
+// Animação do rabo do Goku
 uniform float u_tailWave;
 uniform vec3 u_tailPivot;
 uniform float u_tailLength;
@@ -38,15 +39,12 @@ void main() {
         position += u_waveAxis * offset;
     }
 
-    mat3 normalMatrix = transpose(
-        inverse(mat3(u_model))
-    );
+    mat3 normalMatrix = transpose(inverse(mat3(u_model)));
 
     v_normal = normalMatrix * a_normal;
 
     v_worldPos = vec3(u_model * vec4(position, 1.0));
 
-    // Envia as coordenadas UV para o fragment shader
     v_texcoord = a_texcoord;
 
     gl_Position = (u_projection * u_view * u_model * vec4(position, 1.0));
