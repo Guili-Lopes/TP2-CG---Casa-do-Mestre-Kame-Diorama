@@ -68,7 +68,7 @@ WebGL2 puro com shaders GLSL ES 3.0, e a [TWGL.js](https://twgljs.org/) para uti
 
   _Na cena:_ música de fundo (Cha-La Head-Cha-La na voz do autor), som ambiente de ondas e efeito sonoro quando as esferas do dragão surgem.
 
-- [ ] **3. Skybox**
+- [x] **3. Skybox**
   > ⭐ Skybox, skyphere ou skydome: se considerarmos que nosso mundo está definido dentro de um cubo (skybox), podemos colocar uma imagem de textura em cada face interna (são 6) que represente o horizonte naquela direção. Veja exemplos de texturas de skyboxes e nossa aula sobre efeitos visuais. Repare que o cubo do skybox acompanha a posição, ou seja, não é possível se aproximar de uma parede, muito menos sair do cubo
 
   _Na cena:_ cubemap de céu em estilo anime, em versão de dia e de noite.

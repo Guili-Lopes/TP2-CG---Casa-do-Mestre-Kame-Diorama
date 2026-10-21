@@ -1,6 +1,6 @@
 import { createProgramFromFiles, } from "./utils/shaders.js";
 import { getLocations, } from "./utils/program.js";
-import { textureSources, loadTexture, } from "./utils/texture.js";
+import { textureSources, daySkyboxUrls, loadTexture, loadCubemap, } from "./utils/texture.js";
 import { createShadowMap, getLightViewProjection, } from "./utils/shadow-map.js";
 import { resizeCanvasToDisplaySize, } from "./twgl.full.module.js";
 import { createSceneGeometries, drawGeometry, } from "./utils/geometry.js";
@@ -13,7 +13,7 @@ import { gokuPoses, loadGoku, updateGoku, drawGoku, } from "./scene/goku.js";
 import { drawWorld, } from "./scene/world.js";
 import { updateCloud, drawCloud, } from "./scene/cloud.js";
 
-import { markProjectionDirty, updateProjection, updateCameras, getViewMatrix, getEyePosition, } from "./controls/cameras.js";
+import { markProjectionDirty, getProjectionMatrix, updateCameras, getViewMatrix, getEyePosition, } from "./controls/cameras.js";
 
 import { createActionRunner, } from "./controls/actions.js";
 import { initSidebar, updateSidebar, } from "./controls/sidebar.js";
@@ -28,7 +28,6 @@ const mainProgram = {
 
 const state = {
   mainProgram,
-
   program: mainProgram,
 
   shadowProgram: {
@@ -36,7 +35,13 @@ const state = {
     locations: {},
   },
 
+  skyboxProgram: {
+    id: null,
+    locations: {},
+  },
+
   shadowMap: null,
+  skyboxCubemap: null,
 
   light: {
     direction: [0.4, 1.0, 0.3],
@@ -76,14 +81,13 @@ function drawShape(
 
   const locations = state.program.locations;
 
-  // Esta uniform existe nos dois programas
   gl.uniformMatrix4fv(
     locations.u_model,
     false,
     modelMatrix
   );
 
-  // Na passada da sombra, somente a geometria é necessária
+  // Na passada da sombra, desenha apenas a geometria
   if (state.program === state.shadowProgram) {
     drawGeometry(gl, geometryData);
     return;
@@ -119,9 +123,7 @@ function drawShape(
   );
 
   // Textura difusa na unidade zero
-  const textureData = typeof texture === "string"
-    ? state.textures?.[texture]
-    : texture;
+  const textureData = typeof texture === "string" ? state.textures?.[texture] : texture;
 
   if (texture && !textureData) {
     throw new Error(`Textura não encontrada: ${texture}`);
@@ -129,7 +131,11 @@ function drawShape(
 
   if (textureData) {
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, textureData);
+
+    gl.bindTexture(
+      gl.TEXTURE_2D,
+      textureData
+    );
   }
 
   gl.uniform1i(
@@ -140,7 +146,7 @@ function drawShape(
   drawGeometry(gl, geometryData);
 }
 
-// Aplica a mesma animação do rabo nas duas passadas
+// Aplica a animação do rabo nos programas normal e de sombra
 function setTailWave(gl, wave) {
   const locations = state.program.locations;
 
@@ -156,7 +162,7 @@ function setTailWave(gl, wave) {
   gl.uniform1f(locations.u_time, wave.time);
 }
 
-// Desenha toda a cena, reutilizado pelos dois programas
+// Desenha os objetos opacos da cena
 function drawScene(gl) {
   drawWorld(gl, drawShape);
 
@@ -185,23 +191,33 @@ function drawScene(gl) {
   );
 }
 
-// Inicializa os programas, os modelos e o shadow map
+
+// Inicializa os três programas, os modelos e as texturas
 async function initialize(gl) {
   const mainProgram = state.mainProgram;
 
+  // Programa principal: Phong, materiais, texturas e sombras
   mainProgram.id = await createProgramFromFiles(
     gl,
     "./src/shaders/vertex.glsl",
     "./src/shaders/fragment.glsl"
   );
 
+  // Programa de profundidade para o shadow map
   state.shadowProgram.id = await createProgramFromFiles(
     gl,
     "./src/shaders/shadow-vertex.glsl",
     "./src/shaders/shadow-fragment.glsl"
   );
 
-  // Lista compartilhada pelos dois programas
+  // Programa exclusivo do skybox
+  state.skyboxProgram.id = await createProgramFromFiles(
+    gl,
+    "./src/shaders/skybox-vertex.glsl",
+    "./src/shaders/skybox-fragment.glsl"
+  );
+
+  // Localizações compartilhadas pelos programas principal e de sombra
   const uniformNames = [
     "u_model",
     "u_view",
@@ -247,24 +263,43 @@ async function initialize(gl) {
     attributeNames
   );
 
+  state.skyboxProgram.locations = getLocations(
+    gl,
+    state.skyboxProgram.id,
+    ["u_view", "u_projection", "u_skybox"],
+    ["a_coords"]
+  );
+
+  // Configura o programa principal
   gl.useProgram(mainProgram.id);
 
   gl.enable(gl.DEPTH_TEST);
   gl.enable(gl.CULL_FACE);
 
-  const locations = mainProgram.locations;
-
-  // Texturas dos objetos na unidade zero
+  // Unidade zero: texturas dos objetos
   gl.uniform1i(
-    locations.u_texture,
+    mainProgram.locations.u_texture,
     0
   );
 
-  // Shadow map na unidade um
+  // Unidade um: shadow map
   gl.uniform1i(
-    locations.u_shadowMap,
+    mainProgram.locations.u_shadowMap,
     1
   );
+
+  // Configura o cubemap na unidade dois
+  gl.useProgram(state.skyboxProgram.id);
+
+  gl.uniform1i(
+    state.skyboxProgram.locations.u_skybox,
+    2
+  );
+
+  // Restaura o programa principal para criar as geometrias
+  gl.useProgram(mainProgram.id);
+
+  const locations = mainProgram.locations;
 
   state.geometries = createSceneGeometries(
     gl,
@@ -280,7 +315,7 @@ async function initialize(gl) {
   state.scenery = await loadScenery(gl, locations);
   state.goku = await loadGoku(gl, locations);
 
-  // Carrega as texturas existentes em paralelo
+  // Carrega as texturas 2D dos objetos
   const textureEntries = await Promise.all(
     Object.entries(textureSources).map(async ([name, options]) => {
       const texture = await loadTexture(
@@ -295,6 +330,12 @@ async function initialize(gl) {
 
   state.textures = Object.fromEntries(textureEntries);
 
+  // Carrega o skybox diurno
+  state.skyboxCubemap = await loadCubemap(
+    gl,
+    daySkyboxUrls
+  );
+
   // Cria o framebuffer de profundidade
   state.shadowMap = createShadowMap(gl, 2048);
 
@@ -307,7 +348,7 @@ async function initialize(gl) {
   updateSidebar(state);
 }
 
-// Atualiza as câmeras e as animações
+// Atualiza as câmeras e os objetos animados
 function update(dt) {
   updateCameras(
     dt,
@@ -320,11 +361,11 @@ function update(dt) {
   updateGoku(dt);
 }
 
-// Primeira passada: grava as profundidades vistas pela luz
+// Primeira passada: grava a profundidade vista pela luz
 function renderShadowPass(gl, lightViewProjection) {
   const shadowMap = state.shadowMap;
 
-  // Evita ler a mesma textura que está sendo preenchida
+  // Desliga a leitura da textura que receberá a profundidade
   gl.activeTexture(gl.TEXTURE1);
   gl.bindTexture(gl.TEXTURE_2D, null);
 
@@ -342,7 +383,6 @@ function renderShadowPass(gl, lightViewProjection) {
 
   gl.clear(gl.DEPTH_BUFFER_BIT);
 
-  // Ativa o programa exclusivo da sombra
   state.program = state.shadowProgram;
 
   gl.useProgram(state.shadowProgram.id);
@@ -353,22 +393,72 @@ function renderShadowPass(gl, lightViewProjection) {
     lightViewProjection
   );
 
-  // Reduz a acne causada pela precisão da profundidade
   gl.enable(gl.POLYGON_OFFSET_FILL);
   gl.polygonOffset(1.0, 1.0);
 
-  try{
+  try {
+    // O céu não entra na passada da sombra
     drawScene(gl);
   } finally {
     gl.disable(gl.POLYGON_OFFSET_FILL);
     state.program = state.mainProgram;
   }
-
 }
 
-// Segunda passada: renderiza a cena com o shadow map
-function renderMainPass(gl, mainProgram, lightViewProjection) {
-  // Volta a desenhar no canvas
+// Desenha o cubemap atrás dos objetos opacos
+function drawSkybox(gl, viewMatrix, projectionMatrix) {
+  const skyboxProgram = state.skyboxProgram;
+  const locations = skyboxProgram.locations;
+
+  gl.useProgram(skyboxProgram.id);
+
+  // O vertex shader remove a translação da visualização
+  gl.uniformMatrix4fv(
+    locations.u_view,
+    false,
+    viewMatrix
+  );
+
+  gl.uniformMatrix4fv(
+    locations.u_projection,
+    false,
+    projectionMatrix
+  );
+
+  // Cubemap na unidade de textura dois
+  gl.activeTexture(gl.TEXTURE2);
+
+  gl.bindTexture(
+    gl.TEXTURE_CUBE_MAP,
+    state.skyboxCubemap
+  );
+
+  // Permite desenhar no fundo, cuja profundidade é 1
+  gl.depthFunc(gl.LEQUAL);
+
+  // A câmera está dentro do cubo
+  gl.cullFace(gl.FRONT);
+
+  // Impede o céu de alterar a profundidade já desenhada
+  gl.depthMask(false);
+
+  try {
+    drawGeometry(
+      gl,
+      state.geometries.cube
+    );
+  } finally {
+    // Restaura as configurações para os demais desenhos
+    gl.depthMask(true);
+    gl.cullFace(gl.BACK);
+    gl.depthFunc(gl.LESS);
+  }
+}
+
+// Segunda passada: desenha a cena e depois o céu
+function renderMainPass(gl, lightViewProjection) {
+  const mainProgram = state.mainProgram;
+
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
   gl.viewport(
@@ -383,20 +473,26 @@ function renderMainPass(gl, mainProgram, lightViewProjection) {
     gl.DEPTH_BUFFER_BIT
   );
 
-  // Restaura o programa principal
   state.program = mainProgram;
 
   gl.useProgram(mainProgram.id);
 
   const locations = mainProgram.locations;
 
-  updateProjection(gl, locations.u_projection);
+  // Matrizes compartilhadas pela cena e pelo skybox
+  const projectionMatrix = getProjectionMatrix(gl);
+  const viewMatrix = getViewMatrix(state.activeCamera);
 
-  // Envia a matriz da câmera ativa
+  gl.uniformMatrix4fv(
+    locations.u_projection,
+    false,
+    projectionMatrix
+  );
+
   gl.uniformMatrix4fv(
     locations.u_view,
     false,
-    getViewMatrix(state.activeCamera)
+    viewMatrix
   );
 
   gl.uniform3fv(
@@ -404,7 +500,7 @@ function renderMainPass(gl, mainProgram, lightViewProjection) {
     getEyePosition(state.activeCamera)
   );
 
-  // Envia os parâmetros da iluminação direcional
+  // Parâmetros da iluminação direcional
   gl.uniform3fv(
     locations.u_lightDirection,
     state.light.direction
@@ -425,14 +521,14 @@ function renderMainPass(gl, mainProgram, lightViewProjection) {
     state.lightingEnabled ? 1 : 0
   );
 
-  // Mesma matriz usada para gerar o mapa de sombras
+  // Projeção da luz utilizada no shadow mapping
   gl.uniformMatrix4fv(
     locations.u_lightViewProjection,
     false,
     lightViewProjection
   );
 
-  // Disponibiliza o shadow map na unidade de textura um
+  // Shadow map na unidade um
   gl.activeTexture(gl.TEXTURE1);
 
   gl.bindTexture(
@@ -440,10 +536,19 @@ function renderMainPass(gl, mainProgram, lightViewProjection) {
     state.shadowMap.texture
   );
 
+  // Primeiro desenha os objetos opacos
   drawScene(gl);
+
+  // Depois desenha o céu somente nos pixels do fundo
+  drawSkybox(
+    gl,
+    viewMatrix,
+    projectionMatrix
+  );
 }
 
-// Renderização em duas passadas
+
+// Renderização com sombra, objetos e skybox
 function render(gl) {
   const pixelRatio = Math.min(
     window.devicePixelRatio,
@@ -459,9 +564,7 @@ function render(gl) {
     markProjectionDirty();
   }
 
-  const mainProgram = state.mainProgram;
-
-  // Atualiza a matriz da luz em cada quadro
+  // A matriz da luz é compartilhada pelas duas passadas
   const lightViewProjection = getLightViewProjection(
     state.light.direction
   );
@@ -472,10 +575,9 @@ function render(gl) {
     lightViewProjection
   );
 
-  // Passada 2: cena vista pela câmera
+  // Passada 2: cena vista pela câmera, seguida do céu
   renderMainPass(
     gl,
-    mainProgram,
     lightViewProjection
   );
 }

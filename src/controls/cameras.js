@@ -72,28 +72,22 @@ function markProjectionDirty() {
   projection.dirty = true;
 }
 
-// Atualiza a matriz de projeção
-function updateProjection(gl, location) {
-  if (!projection.dirty) {
-    return;
+// Calcula e devolve a matriz de projeção compartilhada
+function getProjectionMatrix(gl) {
+  if (projection.dirty || !projection.matrix) {
+    const aspect = gl.canvas.width / gl.canvas.height;
+
+    projection.matrix = m4.perspective(
+      projection.fovY,
+      aspect,
+      projection.near,
+      projection.far
+    );
+
+    projection.dirty = false;
   }
 
-  const aspect = gl.canvas.width / gl.canvas.height;
-
-  projection.matrix = m4.perspective(
-    projection.fovY,
-    aspect,
-    projection.near,
-    projection.far
-  );
-
-  gl.uniformMatrix4fv(
-    location,
-    false,
-    projection.matrix
-  );
-
-  projection.dirty = false;
+  return projection.matrix;
 }
 
 // Calcula a posição de uma câmera orbital por coordenadas esféricas
@@ -348,7 +342,7 @@ export {
   freeCamera,
   projection,
   markProjectionDirty,
-  updateProjection,
+  getProjectionMatrix,
   getCameraPosition,
   getEyePosition,
   updateCameras,

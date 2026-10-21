@@ -101,10 +101,7 @@ vec3 calculatePhongLighting(vec3 normal, vec3 albedo) {
     if (diffuseFactor > 0.0) {
         vec3 r = reflect(-l, n);
 
-        float specularFactor = pow(
-            max(dot(r, v), 0.0),
-            u_shininess
-        );
+        float specularFactor = pow(max(dot(r, v), 0.0), u_shininess);
 
         specular = (u_specularColor * u_lightColor * specularFactor);
     }

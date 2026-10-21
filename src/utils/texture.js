@@ -157,5 +157,100 @@ async function loadTexture(gl, url, options = {}) {
   return texture;
 }
 
+// Caminhos das seis faces do skybox diurno
+const daySkyboxUrls = [
+  "./assets/textures/skybox/day/px.png",
+  "./assets/textures/skybox/day/nx.png",
+  "./assets/textures/skybox/day/py.png",
+  "./assets/textures/skybox/day/ny.png",
+  "./assets/textures/skybox/day/pz.png",
+  "./assets/textures/skybox/day/nz.png",
+];
 
-export { textureSources, loadTexture, };
+// Carrega as seis faces de um cubemap em paralelo
+async function loadCubemap(gl, urls) {
+  if (urls.length !== 6) {
+    throw new Error("O cubemap precisa ter exatamente seis imagens.");
+  }
+
+  const images = await Promise.all(
+    urls.map(url => loadImage(url))
+  );
+
+  // As faces precisam ser quadradas e possuir o mesmo tamanho
+  const size = images[0].naturalWidth;
+
+  for (const image of images) {
+    if (
+      image.naturalWidth !== size ||
+      image.naturalHeight !== size
+    ) {
+      throw new Error(
+        "Todas as faces do cubemap devem ser quadradas e do mesmo tamanho."
+      );
+    }
+  }
+
+  const texture = gl.createTexture();
+
+  if (!texture) {
+    throw new Error("Não foi possível criar a textura do skybox.");
+  }
+
+  // Unidade 2 reservada para o cubemap
+  gl.activeTexture(gl.TEXTURE2);
+  gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+
+  // Cubemaps não utilizam inversão vertical
+  gl.pixelStorei(
+    gl.UNPACK_FLIP_Y_WEBGL,
+    false
+  );
+
+  // +X, -X, +Y, -Y, +Z, -Z
+  for (let i = 0; i < images.length; i++) {
+    gl.texImage2D(
+      gl.TEXTURE_CUBE_MAP_POSITIVE_X + i,
+      0,
+      gl.RGBA,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      images[i]
+    );
+  }
+
+  // Gera os mipmaps do cubemap
+  gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+
+  gl.texParameteri(
+    gl.TEXTURE_CUBE_MAP,
+    gl.TEXTURE_MIN_FILTER,
+    gl.LINEAR_MIPMAP_LINEAR
+  );
+
+  gl.texParameteri(
+    gl.TEXTURE_CUBE_MAP,
+    gl.TEXTURE_MAG_FILTER,
+    gl.LINEAR
+  );
+
+  // Evita repetições nas bordas entre as faces
+  for (const parameter of [
+    gl.TEXTURE_WRAP_S,
+    gl.TEXTURE_WRAP_T,
+    gl.TEXTURE_WRAP_R,
+  ]) {
+    gl.texParameteri(
+      gl.TEXTURE_CUBE_MAP,
+      parameter,
+      gl.CLAMP_TO_EDGE
+    );
+  }
+
+  gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
+  gl.activeTexture(gl.TEXTURE0);
+
+  return texture;
+}
+
+export { textureSources, daySkyboxUrls, loadTexture, loadCubemap};
