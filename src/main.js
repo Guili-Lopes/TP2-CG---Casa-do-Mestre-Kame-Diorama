@@ -12,6 +12,7 @@ import { porchLight, loadScenery, updateScenery, drawScenery, } from "./scene/sc
 import { gokuPoses, loadGoku, updateGoku, drawGoku, } from "./scene/goku.js";
 import { drawWorld, } from "./scene/world.js";
 import { updateCloud, drawCloud, } from "./scene/cloud.js";
+import { updateWater, drawWater, } from "./scene/water.js";
 
 import { markProjectionDirty, getProjectionMatrix, updateCameras, getViewMatrix, getEyePosition, } from "./controls/cameras.js";
 
@@ -20,6 +21,9 @@ import { initSidebar, updateSidebar, } from "./controls/sidebar.js";
 import { initInput, consumeInput, } from "./controls/input.js";
 
 const matrixStack = new MatrixStack();
+
+// Controla quando o desenho atual corresponde à água
+let activeWater = null;
 
 const mainProgram = {
   id: null,
@@ -73,14 +77,7 @@ const state = {
 };
 
 // Desenha uma geometria com material e textura
-function drawShape(
-  gl,
-  geometry,
-  modelMatrix,
-  color,
-  material = "matte",
-  texture = null
-) {
+function drawShape(gl, geometry, modelMatrix, color, material = "matte", texture = null) {
   const geometryData = typeof geometry === "string" ? state.geometries[geometry] : geometry;
 
   if (!geometryData) {
@@ -100,6 +97,17 @@ function drawShape(
     drawGeometry(gl, geometryData);
     return;
   }
+
+  // Água usa deslocamento e transparência; os outros objetos continuam opacos
+  gl.uniform1i(
+    locations.u_isWater,
+    activeWater ? 1 : 0
+  );
+
+  gl.uniform1f(
+    locations.u_alpha, 
+    activeWater?.alpha ?? 1.0
+  );
 
   const surface = materials[material] ?? materials.matte;
 
@@ -159,15 +167,56 @@ function setTailWave(gl, wave) {
   const locations = state.program.locations;
 
   if (!wave) {
-    gl.uniform1f(locations.u_tailWave, 0.0);
+    gl.uniform1f(
+      locations.u_tailWave,
+       0.0
+    );
     return;
   }
 
-  gl.uniform1f(locations.u_tailWave, wave.amplitude);
-  gl.uniform3fv(locations.u_tailPivot, wave.pivot);
-  gl.uniform1f(locations.u_tailLength, wave.length);
-  gl.uniform3fv(locations.u_waveAxis, wave.axis);
-  gl.uniform1f(locations.u_time, wave.time);
+  gl.uniform1f(
+    locations.u_tailWave,
+    wave.amplitude
+  );
+
+  gl.uniform3fv(
+    locations.u_tailPivot,
+    wave.pivot
+  );
+
+  gl.uniform1f(
+    locations.u_tailLength,
+    wave.length
+  );
+
+  gl.uniform3fv(
+    locations.u_waveAxis,
+    wave.axis
+  );
+
+  gl.uniform1f(
+    locations.u_time,
+    wave.time
+  );
+}
+
+// Liga ou desliga os parâmetros específicos da água
+function setWater(gl, water = null) {
+  activeWater = water;
+
+  const locations = state.mainProgram.locations;
+
+  gl.uniform1i(locations.u_isWater, water ? 1 : 0);
+  gl.uniform1f(locations.u_alpha, water?.alpha ?? 1.0);
+
+  if (!water) {
+    return;
+  }
+
+  gl.uniform1f(locations.u_time, water.time);
+  gl.uniform4fv(locations.u_waterWave1, water.wave1);
+  gl.uniform4fv(locations.u_waterWave2, water.wave2);
+  gl.uniform2fv(locations.u_waterSpeeds, water.speeds);
 }
 
 // Desenha os objetos opacos da cena
@@ -256,6 +305,11 @@ async function initialize(gl) {
     "u_pointLightPositions[0]",
     "u_pointLightColors[0]",
     "u_pointLightAttenuation",
+    "u_isWater",
+    "u_alpha",
+    "u_waterWave1",
+    "u_waterWave2",
+    "u_waterSpeeds",
   ];
 
   const attributeNames = [
@@ -374,6 +428,7 @@ function update(dt) {
   updateCloud(dt);
   updateScenery(dt);
   updateGoku(dt);
+  updateWater(dt);
 }
 
 // Primeira passada: grava a profundidade vista pela luz
@@ -609,7 +664,7 @@ function renderMainPass(gl, lightViewProjection) {
     state.shadowMap.texture
   );
 
-  // Primeiro desenha os objetos opacos
+    // Primeiro desenha os objetos opacos
   drawScene(gl);
 
   // Depois desenha o céu somente nos pixels do fundo
@@ -618,6 +673,26 @@ function renderMainPass(gl, lightViewProjection) {
     viewMatrix,
     projectionMatrix
   );
+
+  // Restaura o programa principal para desenhar a água
+  state.program = mainProgram;
+  gl.useProgram(mainProgram.id);
+
+  // Habilita a mistura de transparência
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+  // A água testa a profundidade, mas não escreve nela
+  gl.depthMask(false);
+
+  try {
+    // Água com ondas, textura animada e transparência
+    drawWater(gl, drawShape, setWater);
+  } finally {
+    // Restaura o estado padrão do WebGL
+    gl.depthMask(true);
+    gl.disable(gl.BLEND);
+  }
 }
 
 

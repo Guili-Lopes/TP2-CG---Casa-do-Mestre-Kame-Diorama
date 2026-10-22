@@ -91,7 +91,7 @@ WebGL2 puro com shaders GLSL ES 3.0, e a [TWGL.js](https://twgljs.org/) para uti
 - [x] **7. Vários tipos de objetos**
   > Vários tipos de objetos: em vez de compor o cenário com apenas 03 tipos de objetos, tenha uns 07 tipos diferentes para dar variedade
 
-  _Na cena:_ casa, palmeira, pedra, arbusto, tufo de grama, guarda-sol com canga e píer.
+  _Na cena:_ casa, palmeira, pedra, arbusto, tufo de grama, guarda-sol com canga e píer, lâmpada.
 
 - [ ] **8. Ciclo dia/noite**
   > 🍔 Ciclo dia/noite: faça o tempo passar e que isso defina na forma como o cenário é renderizado. Isso pode ser feito configurando-se a fonte de luz direcional com cores diferentes, dependendo da hora do dia
@@ -115,7 +115,7 @@ WebGL2 puro com shaders GLSL ES 3.0, e a [TWGL.js](https://twgljs.org/) para uti
 
   _Na cena:_ terceira câmera, ativada pela tecla <kbd>3</kbd>.
 
-- [ ] **12. Líquido**
+- [x] **12. Líquido**
   > Líquido: tenha uma região aquática como um lago, poça d'água, mar ou rio. Uma ideia para que um sólido pareça água é que ele (a) tenha certa transparência, (b) tenha uma textura com suas coordenadas animadas e (c-para oceano ou rio agitado) desloque verticalmente os vértices da superfície ao longo do tempo para criar ondas
 
   _Na cena:_ o mar em volta da ilha, com transparência, textura animada e ondas.

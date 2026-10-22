@@ -16,6 +16,12 @@ uniform float u_tailLength;
 uniform vec3 u_waveAxis;
 uniform float u_time;
 
+// Animação da água
+uniform bool u_isWater;
+uniform vec4 u_waterWave1;
+uniform vec4 u_waterWave2;
+uniform vec2 u_waterSpeeds;
+
 out vec3 v_normal;
 out vec3 v_worldPos;
 out vec2 v_texcoord;
@@ -39,13 +45,42 @@ void main() {
         position += u_waveAxis * offset;
     }
 
-    mat3 normalMatrix = transpose(inverse(mat3(u_model)));
+    // Calcula a posição no mundo antes das ondas
+    vec4 worldPosition = u_model * vec4(position, 1.0);
 
-    v_normal = normalMatrix * a_normal;
+    if (u_isWater) {
+        vec2 xz = worldPosition.xz;
 
-    v_worldPos = vec3(u_model * vec4(position, 1.0));
+        // Direções normalizadas das duas ondas
+        vec2 direction1 = normalize(u_waterWave1.zw);
+        vec2 direction2 = normalize(u_waterWave2.zw);
 
+        // Fases das ondas no espaço do mundo
+        float phase1 = u_waterWave1.y * dot(direction1, xz) + u_waterSpeeds.x * u_time;
+        float phase2 = u_waterWave2.y * dot(direction2, xz) + u_waterSpeeds.y * u_time;
+
+        // Soma dos deslocamentos verticais
+        float height = u_waterWave1.x * sin(phase1) + u_waterWave2.x * sin(phase2);
+
+        worldPosition.y += height;
+
+        // Derivadas parciais da altura em relação a X e Z
+        float dhdx = (u_waterWave1.x * u_waterWave1.y * direction1.x * cos(phase1) + u_waterWave2.x * u_waterWave2.y * direction2.x * cos(phase2));
+
+        float dhdz = (u_waterWave1.x * u_waterWave1.y * direction1.y * cos(phase1) + u_waterWave2.x * u_waterWave2.y * direction2.y * cos(phase2));
+
+        // Normal perpendicular à superfície da onda
+        v_normal = normalize(vec3(-dhdx, 1.0, -dhdz));
+
+    } else {
+        // Normal dos demais objetos
+        mat3 normalMatrix = transpose(inverse(mat3(u_model)));
+
+        v_normal = normalMatrix * a_normal;
+    }
+
+    v_worldPos = worldPosition.xyz;
     v_texcoord = a_texcoord;
 
-    gl_Position = (u_projection * u_view * u_model * vec4(position, 1.0));
+    gl_Position = u_projection * u_view * worldPosition;
 }

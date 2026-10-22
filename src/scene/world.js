@@ -2,7 +2,7 @@ import { m4, } from "../twgl.full.module.js";
 
 import { terrainConfig, } from "./terrain.js";
 
-// Desenha o hemisfério, o terreno e a água
+// Desenha o hemisfério e o terreno
 function drawWorld(gl, drawShape) {
   // Hemisfério com textura da Esfera do Dragão
   drawShape(
@@ -26,26 +26,6 @@ function drawWorld(gl, drawShape) {
     [1, 1, 1],
     "matte",
     "island"
-  );
-
-  // Água provisória, ainda sem textura
-  drawShape(
-    gl,
-    "disc",
-    m4.scale(
-      m4.translation([
-        0,
-        terrainConfig.waterLevel,
-        0,
-      ]),
-      [
-        terrainConfig.domeRadius,
-        1,
-        terrainConfig.domeRadius,
-      ]
-    ),
-    [0.05, 0.42, 0.85],
-    "glossy"
   );
 }
 

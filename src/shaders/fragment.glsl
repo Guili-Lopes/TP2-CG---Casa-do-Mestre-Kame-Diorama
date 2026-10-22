@@ -47,6 +47,11 @@ uniform bool u_fogEnabled;
 uniform vec3 u_fogColor;
 uniform float u_fogDensity;
 
+// Textura animada e transparência da água
+uniform bool u_isWater;
+uniform float u_alpha;
+uniform float u_time;
+
 // Calcula a proporção de sombra usando PCF 3x3
 float calculateShadow(vec3 normal, vec3 lightDirection) {
     vec4 lightPosition = u_lightViewProjection * vec4(v_worldPos, 1.0);
@@ -170,16 +175,29 @@ void main() {
     vec3 albedo = u_color;
 
     if (u_useTexture) {
-        albedo *= texture(u_texture, v_texcoord).rgb;
+        if (u_isWater) {
+            // Duas camadas da textura deslizando em direções diferentes
+            vec2 uv1 = v_worldPos.xz * 0.12 + u_time * vec2(0.02, 0.01);
+            vec2 uv2 = v_worldPos.xz * 0.20 + u_time * vec2(-0.015, 0.02);
+
+            vec3 waterColor1 = texture(u_texture, uv1).rgb;
+            vec3 waterColor2 = texture(u_texture, uv2).rgb;
+
+            albedo *= (waterColor1 + waterColor2) * 0.5;
+
+        } else {
+            // Textura normal dos demais objetos
+            albedo *= texture(u_texture, v_texcoord).rgb;
+        }
     }
 
     // A neblina continua funcionando com a iluminação desligada
     if (!u_lightingEnabled || u_unlit) {
-        outColor = vec4(applyFog(albedo), 1.0);
+        outColor = vec4(applyFog(albedo), u_alpha);
         return;
     }
 
-    // Phong com sombras
+    // Phong com sombras e luzes pontuais
     vec3 color = calculatePhongLighting(v_normal, albedo);
 
     // Emissão própria do material
@@ -188,5 +206,5 @@ void main() {
     // Aplica a neblina à cor final
     color = applyFog(color);
 
-    outColor = vec4(color, 1.0);
+    outColor = vec4(color, u_alpha);
 }

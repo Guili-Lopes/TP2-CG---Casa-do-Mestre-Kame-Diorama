@@ -85,6 +85,12 @@ const materials = {
     unlit: true,
   },
 
+  water: {
+    specular: 0.8,
+    shininess: 80,
+    unlit: false,
+  },
+
   // Material sem iluminação para elementos estilizados
   none: {
     specular: 0,

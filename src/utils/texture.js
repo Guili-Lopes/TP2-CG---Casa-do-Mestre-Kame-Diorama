@@ -86,6 +86,12 @@ const textureSources = {
     flipY: true,
     repeat: true,
   },
+
+  water: {
+    url: "./assets/textures/water.png",
+    flipY: false,
+    repeat: true,
+  },
 };
 
 
