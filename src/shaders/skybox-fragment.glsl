@@ -18,9 +18,9 @@ void main() {
 
     if (u_fogEnabled) {
         // Mistura o horizonte com a cor da neblina
-        float horizonFactor = smoothstep(-0.15, 0.25, direction.y);
+        float fogAmount = 1.0 - smoothstep(0.0, 0.3, abs(direction.y));
 
-        skyColor = mix(u_fogColor, skyColor, horizonFactor);
+        skyColor = mix(skyColor, u_fogColor, fogAmount * 0.85);
     }
 
     outColor = vec4(skyColor, 1.0);

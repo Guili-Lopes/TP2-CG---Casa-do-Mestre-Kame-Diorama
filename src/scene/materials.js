@@ -63,6 +63,7 @@ const materials = {
   glass: {
     specular: 0.9,
     shininess: 96,
+    alpha: 0.45,
     unlit: false,
   },
 

@@ -8,7 +8,7 @@ import { MatrixStack, } from "./utils/matrix-stack.js";
 
 import { materials, } from "./scene/materials.js";
 import { loadTerrain, } from "./scene/terrain.js";
-import { porchLight, loadScenery, updateScenery, drawScenery, } from "./scene/scenery.js";
+import { porchLight, loadScenery, updateScenery, drawScenery, drawHouseGlass, } from "./scene/scenery.js";
 import { gokuPoses, loadGoku, updateGoku, drawGoku, } from "./scene/goku.js";
 import { drawWorld, } from "./scene/world.js";
 import { updateCloud, drawCloud, } from "./scene/cloud.js";
@@ -57,7 +57,7 @@ const state = {
   pointLights: [porchLight],
 
   fog: {
-    color: [0.68, 0.75, 0.69],
+    color: [0.58, 0.72, 0.80],
     density: 0.02,
   },
 
@@ -98,18 +98,18 @@ function drawShape(gl, geometry, modelMatrix, color, material = "matte", texture
     return;
   }
 
-  // Água usa deslocamento e transparência; os outros objetos continuam opacos
+  const surface = materials[material] ?? materials.matte;
+
+  // A água tem alfa próprio; os demais objetos usam o alfa do material
   gl.uniform1i(
-    locations.u_isWater,
+    locations.u_isWater, 
     activeWater ? 1 : 0
   );
 
   gl.uniform1f(
-    locations.u_alpha, 
-    activeWater?.alpha ?? 1.0
+    locations.u_alpha,
+     activeWater?.alpha ?? surface.alpha ?? 1.0
   );
-
-  const surface = materials[material] ?? materials.matte;
 
   gl.uniform3fv(
     locations.u_color,
@@ -664,7 +664,7 @@ function renderMainPass(gl, lightViewProjection) {
     state.shadowMap.texture
   );
 
-    // Primeiro desenha os objetos opacos
+  // Primeiro desenha os objetos opacos
   drawScene(gl);
 
   // Depois desenha o céu somente nos pixels do fundo
@@ -688,6 +688,9 @@ function renderMainPass(gl, lightViewProjection) {
   try {
     // Água com ondas, textura animada e transparência
     drawWater(gl, drawShape, setWater);
+
+    // Vidros transparentes da Kame House
+    drawHouseGlass(gl, state.scenery, drawShape);
   } finally {
     // Restaura o estado padrão do WebGL
     gl.depthMask(true);

@@ -25,7 +25,7 @@ const houseColors = {
   material: rgb(201, 74, 64),
   text: rgb(201, 74, 64),
   green_dor: rgb(16, 108, 89),
-  galsss: rgb(28, 62, 120),
+  galsss: rgb(170, 200, 230),
   cement: rgb(205, 202, 195),
   white_wood: rgb(240, 236, 225),
   metal: rgb(175, 175, 175),
@@ -77,14 +77,17 @@ const porchLamp = {
   bulb: [1.185, 2.60, 2.14],
 };
 
+// Guarda a transformação dos vidros para desenhá-los separadamente
+const houseGlass = {
+  matrix: null,
+};
+
 // Atualiza a rotação do galo com base no tempo
 function updateScenery(dt) {
-  roosterState.angle = (
-    roosterState.angle + roosterState.speed * dt
-  ) % (Math.PI * 2);
+  roosterState.angle = (roosterState.angle + roosterState.speed * dt) % (Math.PI * 2);
 }
 
-// Desenha os grupos do OBJ com cor, material e textura
+// Desenha os grupos do OBJ com cor, material, textura e filtro opcionais
 function drawModel(
   gl,
   model,
@@ -92,9 +95,14 @@ function drawModel(
   drawShape,
   getColor,
   getMaterial = () => "matte",
-  getTexture = () => null
+  getTexture = () => null,
+  shouldDraw = () => true
 ) {
   for (const [material, geometry] of Object.entries(model.groups)) {
+    if (!shouldDraw(material)) {
+      continue;
+    }
+
     drawShape(
       gl,
       geometry,
@@ -141,13 +149,16 @@ function drawPart(
 function drawHouse(gl, instance, scenery, stack, drawShape) {
   stack.push(scenery.normalizations.house);
 
+  // Guarda a matriz da casa para desenhar os vidros depois
+  houseGlass.matrix = stack.current();
+
   // Atualiza a posição da luz no espaço do mundo
   porchLight.position = m4.transformPoint(
     stack.current(),
     porchLamp.bulb
   );
 
-  // Desenha os materiais da casa com ou sem textura
+  // Desenha os materiais da casa, exceto os vidros
   drawModel(
     gl,
     scenery.models.house,
@@ -155,7 +166,8 @@ function drawHouse(gl, instance, scenery, stack, drawShape) {
     drawShape,
     material => houseTextures[material] ? rgb(255, 255, 255) : houseColors[material] ?? rgb(205, 202, 195),
     material => houseMaterials[material] ?? "matte",
-    material => houseTextures[material] ?? null
+    material => houseTextures[material] ?? null,
+    material => material !== "galsss"
   );
 
   // Base metálica da lâmpada, perpendicular à parede
@@ -219,6 +231,27 @@ function drawHouse(gl, instance, scenery, stack, drawShape) {
 
   stack.pop();
   stack.pop();
+}
+
+// Desenha os vidros da casa na passada de transparência
+function drawHouseGlass(gl, scenery, drawShape) {
+  if (!houseGlass.matrix) {
+    return;
+  }
+
+  const geometry = scenery.models.house.groups.galsss;
+
+  if (!geometry) {
+    return;
+  }
+
+  drawShape(
+    gl,
+    geometry,
+    houseGlass.matrix,
+    houseColors.galsss,
+    "glass"
+  );
 }
 
 // Cores associadas aos materiais da palmeira
@@ -609,4 +642,4 @@ function drawScenery(gl, scenery, stack, drawShape) {
   }
 }
 
-export { porchLight, loadScenery, createScenery, updateScenery, drawScenery, };
+export { porchLight, houseGlass, loadScenery, createScenery, updateScenery, drawScenery, drawHouseGlass, };
