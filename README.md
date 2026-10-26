@@ -120,7 +120,7 @@ WebGL2 puro com shaders GLSL ES 3.0, e a [TWGL.js](https://twgljs.org/) para uti
 
   _Na cena:_ o mar em volta da ilha, com transparência, textura animada e ondas.
 
-- [ ] **13. Vento**
+- [x] **13. Vento**
   > ⭐ Vento: simule que existe vento e faça as coisas mexerem com ele. Por exemplo, aplique um shear com uma intensidade dada, em um certo momento, por uma textura que contém ruído branco (eg, perlin noise). Moitas de grama e a copa das árvores podem sofrer essa transformação
 
   _Na cena:_ shear com intensidade dada por uma textura de ruído nas folhas das palmeiras, nos arbustos e na grama; o galo do catavento gira acompanhando a direção do vento.

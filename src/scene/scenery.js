@@ -2,7 +2,9 @@ import { m4, } from "../twgl.full.module.js";
 
 import { loadModel, createNormalizationMatrix, } from "../utils/obj-loader.js";
 
-import { terrainConfig, getGroundHeight, } from "../scene/terrain.js";
+import { terrainConfig, getGroundHeight, } from "./terrain.js";
+
+import { getWindDirection, getWindShear, shearMatrix, } from "./wind.js";
 
 // Modelos utilizados pelos objetos da paisagem
 const modelPaths = {
@@ -65,6 +67,12 @@ const roosterState = {
 // Pivô do galo nas coordenadas originais do modelo OBJ
 const roosterPivot = [-0.0043, 0, 1.9233];
 
+// Pivô das folhas da palmeira nas coordenadas do OBJ
+const palmLeafPivot = [-0.61, 24.14, 2.26];
+
+// Correção para a direção original do bico do galo
+const roosterFacingOffset = -0.93;
+
 // Lâmpada da varanda e suas propriedades luminosas
 const porchLight = {
   position: [0, 0, 0],
@@ -82,9 +90,66 @@ const houseGlass = {
   matrix: null,
 };
 
-// Atualiza a rotação do galo com base no tempo
-function updateScenery(dt) {
-  roosterState.angle = (roosterState.angle + roosterState.speed * dt) % (Math.PI * 2);
+// Atualiza o galo e as transformações da vegetação pelo vento
+function updateScenery(dt, scenery) {
+  const direction = getWindDirection();
+
+  // O galo aponta para a direção de onde vem o vento
+  const targetAngle = Math.atan2(-direction[0], -direction[2]) + roosterFacingOffset;
+
+  // Interpolação angular pelo caminho mais curto
+  const difference = Math.atan2(
+    Math.sin(targetAngle - roosterState.angle),
+    Math.cos(targetAngle - roosterState.angle)
+  );
+
+  roosterState.angle += difference * Math.min(1, 2 * dt);
+  roosterState.angle = (roosterState.angle + Math.PI * 2) % (Math.PI * 2);
+
+  // Intensidade máxima de cisalhamento para cada vegetação
+  const strengths = {
+    grass: 0.35,
+    bush: 0.10,
+    palm: 0.04,
+  };
+
+  for (const instance of scenery.instances) {
+    const strength = strengths[instance.type];
+
+    if (strength === undefined) {
+      continue;
+    }
+
+    // Calcula a matriz do vento uma única vez por quadro
+    const [sx, sz] = getWindShear(instance.x, instance.z, strength);
+    instance.windMatrix = shearMatrix(sx, sz);
+
+    if (instance.type === "palm") {
+      // As folhas recebem uma intensidade maior que o tronco
+      const [wx, wz] = getWindShear(instance.x, instance.z, 0.25);
+
+      // Converte a direção do mundo para os eixos locais da palmeira
+      const angle = instance.rotationY;
+      const localX = Math.cos(angle) * wx - Math.sin(angle) * wz;
+      const localZ = Math.sin(angle) * wx + Math.cos(angle) * wz;
+
+      const tilt = Math.hypot(localX, localZ);
+
+      const axis = tilt > 0 ? [localZ / tilt, 0, -localX / tilt] : [1, 0, 0];
+
+      instance.leafWindMatrix = m4.multiply(
+        m4.multiply(
+          m4.translation(palmLeafPivot),
+          m4.axisRotation(axis, tilt)
+        ),
+        m4.translation([
+          -palmLeafPivot[0],
+          -palmLeafPivot[1],
+          -palmLeafPivot[2],
+        ])
+      );
+    }
+  }
 }
 
 // Desenha os grupos do OBJ com cor, material, textura e filtro opcionais
@@ -158,17 +223,23 @@ function drawHouse(gl, instance, scenery, stack, drawShape) {
     porchLamp.bulb
   );
 
-  // Desenha os materiais da casa, exceto os vidros
-  drawModel(
-    gl,
-    scenery.models.house,
-    stack,
-    drawShape,
-    material => houseTextures[material] ? rgb(255, 255, 255) : houseColors[material] ?? rgb(205, 202, 195),
-    material => houseMaterials[material] ?? "matte",
-    material => houseTextures[material] ?? null,
-    material => material !== "galsss"
-  );
+  gl.disable(gl.CULL_FACE);
+
+  try{
+    // Desenha os materiais da casa, exceto os vidros
+    drawModel(
+      gl,
+      scenery.models.house,
+      stack,
+      drawShape,
+      material => houseTextures[material] ? rgb(255, 255, 255) : houseColors[material] ?? rgb(205, 202, 195),
+      material => houseMaterials[material] ?? "matte",
+      material => houseTextures[material] ?? null,
+      material => material !== "galsss"
+    );
+  } finally {
+    gl.enable(gl.CULL_FACE);
+  }
 
   // Base metálica da lâmpada, perpendicular à parede
   stack.push(
@@ -205,7 +276,7 @@ function drawHouse(gl, instance, scenery, stack, drawShape) {
 
   // Rotaciona o galo em torno do eixo da haste
   const translation = m4.translation(roosterPivot);
-  const rotation = m4.rotationY(roosterState.angle);
+  const rotation = m4.rotationY(roosterState.angle - instance.rotationY);
 
   const inverseTranslation = m4.translation([
     -roosterPivot[0],
@@ -277,9 +348,24 @@ const palmTints = {
   "Material.001": rgb(180, 230, 160),
 };
 
-// Palmeira com casca texturizada e folhas com textura vegetal
+// Palmeira com tronco e folhas movimentados pelo vento
 function drawPalm(gl, instance, scenery, stack, drawShape) {
   stack.push(scenery.normalizations.palm);
+
+  // Desenha o tronco com o cisalhamento suave da instância
+  drawModel(
+    gl,
+    scenery.models.palm,
+    stack,
+    drawShape,
+    material => palmTints[material] ?? palmColors[material] ?? rgb(89, 50, 32),
+    material => palmMaterials[material] ?? "matte",
+    material => palmTextures[material] ?? null,
+    material => material !== "Material.001"
+  );
+
+  // Aplica um segundo cisalhamento apenas nas folhas
+  stack.push(instance.leafWindMatrix ?? m4.identity());
 
   drawModel(
     gl,
@@ -288,9 +374,11 @@ function drawPalm(gl, instance, scenery, stack, drawShape) {
     drawShape,
     material => palmTints[material] ?? palmColors[material] ?? rgb(89, 50, 32),
     material => palmMaterials[material] ?? "matte",
-    material => palmTextures[material] ?? null
+    material => palmTextures[material] ?? null,
+    material => material === "Material.001"
   );
 
+  stack.pop();
   stack.pop();
 }
 
@@ -623,8 +711,14 @@ function drawScenery(gl, scenery, stack, drawShape) {
       instance.scale,
     ]);
 
+    // Aplica o vento depois da rotação local e antes da translação
+    const windMatrix = instance.windMatrix ?? m4.identity();
+
     const localMatrix = m4.multiply(
-      m4.multiply(translation, rotation),
+      m4.multiply(
+        m4.multiply(translation, windMatrix),
+        rotation
+      ),
       scaling
     );
 

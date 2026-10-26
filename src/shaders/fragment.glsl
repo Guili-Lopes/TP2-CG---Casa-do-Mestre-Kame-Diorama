@@ -198,7 +198,7 @@ void main() {
     }
 
     // Phong com sombras e luzes pontuais
-    vec3 color = calculatePhongLighting(v_normal, albedo);
+    vec3 color = calculatePhongLighting(gl_FrontFacing ? v_normal : -v_normal, albedo);
 
     // Emissão própria do material
     color += albedo * u_emissive;

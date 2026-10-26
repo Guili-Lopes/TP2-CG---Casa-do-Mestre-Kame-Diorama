@@ -13,6 +13,7 @@ import { gokuPoses, loadGoku, updateGoku, drawGoku, } from "./scene/goku.js";
 import { drawWorld, } from "./scene/world.js";
 import { updateCloud, drawCloud, } from "./scene/cloud.js";
 import { updateWater, drawWater, } from "./scene/water.js";
+import { loadWind, updateWind, } from "./scene/wind.js";
 
 import { markProjectionDirty, getProjectionMatrix, updateCameras, getViewMatrix, getEyePosition, } from "./controls/cameras.js";
 
@@ -384,6 +385,9 @@ async function initialize(gl) {
   state.scenery = await loadScenery(gl, locations);
   state.goku = await loadGoku(gl, locations);
 
+  // Carrega a textura de ruído das rajadas
+  await loadWind();
+
   // Carrega as texturas 2D dos objetos
   const textureEntries = await Promise.all(
     Object.entries(textureSources).map(async ([name, options]) => {
@@ -425,8 +429,10 @@ function update(dt) {
     consumeInput()
   );
 
+  updateWind(dt);
+  updateScenery(dt, state.scenery);
+
   updateCloud(dt);
-  updateScenery(dt);
   updateGoku(dt);
   updateWater(dt);
 }
