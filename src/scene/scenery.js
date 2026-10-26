@@ -103,7 +103,7 @@ function updateScenery(dt, scenery) {
     Math.cos(targetAngle - roosterState.angle)
   );
 
-  roosterState.angle += difference * Math.min(1, 2 * dt);
+  roosterState.angle += difference * Math.min(1, 1.2 * dt);
   roosterState.angle = (roosterState.angle + Math.PI * 2) % (Math.PI * 2);
 
   // Intensidade máxima de cisalhamento para cada vegetação
