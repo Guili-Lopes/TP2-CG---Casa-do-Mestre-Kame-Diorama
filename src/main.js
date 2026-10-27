@@ -14,6 +14,7 @@ import { drawWorld, } from "./scene/world.js";
 import { updateCloud, drawCloud, } from "./scene/cloud.js";
 import { updateWater, drawWater, } from "./scene/water.js";
 import { loadWind, updateWind, } from "./scene/wind.js";
+import { updateParticles, burstParticles, createParticleGeometry, drawParticles, } from "./scene/particles.js";
 
 import { markProjectionDirty, getProjectionMatrix, updateCameras, getViewMatrix, getEyePosition, } from "./controls/cameras.js";
 
@@ -44,6 +45,13 @@ const state = {
     id: null,
     locations: {},
   },
+
+  particleProgram: {
+    id: null,
+    locations: {},
+  },
+
+  particleGeometry: null,
 
   shadowMap: null,
   skyboxCubemap: null,
@@ -76,6 +84,9 @@ const state = {
   soundEnabled: false,
   timeOfDay: 12,
 };
+
+// Identifica quando o Goku retorna à pose em pé
+let previousParticlePoseIndex = state.poseIndex;
 
 // Desenha uma geometria com material e textura
 function drawShape(gl, geometry, modelMatrix, color, material = "matte", texture = null) {
@@ -275,6 +286,13 @@ async function initialize(gl) {
     "./src/shaders/skybox-fragment.glsl"
   );
 
+  // Programa exclusivo da aura de partículas
+  state.particleProgram.id = await createProgramFromFiles(
+    gl,
+    "./src/shaders/particles-vertex.glsl",
+    "./src/shaders/particles-fragment.glsl"
+  );
+
   // Localizações compartilhadas pelos programas principal e de sombra
   const uniformNames = [
     "u_model",
@@ -340,6 +358,13 @@ async function initialize(gl) {
     ["a_coords"]
   );
 
+  state.particleProgram.locations = getLocations(
+    gl,
+    state.particleProgram.id,
+    ["u_view", "u_projection", "u_pointScale", "u_particleTexture", "u_particleColor"],
+    ["a_position", "a_size", "a_alpha"]
+  );
+
   // Configura o programa principal
   gl.useProgram(mainProgram.id);
 
@@ -366,6 +391,10 @@ async function initialize(gl) {
     2
   );
 
+  // Unidade três reservada para a textura das partículas
+  gl.useProgram(state.particleProgram.id);
+  gl.uniform1i(state.particleProgram.locations.u_particleTexture, 3);
+
   // Restaura o programa principal para criar as geometrias
   gl.useProgram(mainProgram.id);
 
@@ -384,6 +413,12 @@ async function initialize(gl) {
 
   state.scenery = await loadScenery(gl, locations);
   state.goku = await loadGoku(gl, locations);
+
+  // Prepara o buffer dinâmico das partículas
+  state.particleGeometry = createParticleGeometry(gl);
+
+  // Inicia a aura do Goku em pé
+  burstParticles(60);
 
   // Carrega a textura de ruído das rajadas
   await loadWind();
@@ -435,6 +470,16 @@ function update(dt) {
   updateCloud(dt);
   updateGoku(dt);
   updateWater(dt);
+
+  // Cria uma rajada ao retornar à pose em pé
+  if (state.poseIndex === 0 && previousParticlePoseIndex !== 0) {
+    burstParticles(60);
+  }
+
+  previousParticlePoseIndex = state.poseIndex;
+
+  // Partículas existentes continuam vivas mesmo após trocar de pose
+  updateParticles(dt, state.poseIndex === 0);
 }
 
 // Primeira passada: grava a profundidade vista pela luz
@@ -570,6 +615,47 @@ function uploadPointLights(gl, locations) {
   }
 }
 
+// Desenha a aura do Goku com blending aditivo
+function renderParticles(gl, viewMatrix, projectionMatrix) {
+  const particleProgram = state.particleProgram;
+  const locations = particleProgram.locations;
+
+  gl.useProgram(particleProgram.id);
+
+  gl.uniformMatrix4fv(locations.u_view, false, viewMatrix);
+  gl.uniformMatrix4fv(locations.u_projection, false, projectionMatrix);
+
+  // Converte o tamanho das partículas para pixels
+  const pointScale = gl.canvas.height * projectionMatrix[5] / 2;
+
+  gl.uniform1f(locations.u_pointScale, pointScale);
+
+  // Cor dourada da aura
+  gl.uniform3fv(locations.u_particleColor, [0.45, 0.7, 1.0]);
+
+  // Textura na unidade três
+  gl.activeTexture(gl.TEXTURE3);
+  gl.bindTexture(gl.TEXTURE_2D, state.textures.particle);
+
+  // Blending aditivo para simular partículas luminosas
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+  gl.depthMask(false);
+
+  try {
+    drawParticles(gl, state.particleGeometry);
+  } finally {
+    gl.depthMask(true);
+    gl.disable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+    gl.bindTexture(gl.TEXTURE_2D, null);
+    gl.activeTexture(gl.TEXTURE0);
+
+    gl.useProgram(state.mainProgram.id);
+  }
+}
+
 // Segunda passada: desenha a cena e depois o céu
 function renderMainPass(gl, lightViewProjection) {
   const mainProgram = state.mainProgram;
@@ -702,6 +788,9 @@ function renderMainPass(gl, lightViewProjection) {
     gl.depthMask(true);
     gl.disable(gl.BLEND);
   }
+
+  // Aura do Goku desenhada por último
+  renderParticles(gl, viewMatrix, projectionMatrix);
 }
 
 

@@ -73,7 +73,7 @@ WebGL2 puro com shaders GLSL ES 3.0, e a [TWGL.js](https://twgljs.org/) para uti
 
   _Na cena:_ cubemap de céu em estilo anime, em versão de dia e de noite.
 
-- [ ] **4. Efeitos de partículas**
+- [x] **4. Efeitos de partículas**
   > 🍔 Efeitos de partículas: para simular fenômenos como fogo, fumaça, água etc. Falaremos disso na aula de efeitos visuais
 
   _Na cena:_ aura de ki em volta do Goku.
@@ -162,8 +162,8 @@ Quando a noite cai, as **7 esferas do dragão** surgem na areia em frente à cas
 
 ### Texturas e imagens
 
-- **Height map da ilha** — criado pelo autor.
-- **Texturas da ilha, das esferas do dragão, do hemisfério, do guarda-sol, da canga, da madeira, da casca, da folhagem, do ruído e da partícula** — geradas proceduralmente com auxílio do Claude (IA); a textura da ilha foi gerada a partir do height map do autor.
+- **Height map da ilha** — geradas proceduralmente com auxílio do ChatGPT (IA);
+- **Texturas da ilha, das esferas do dragão, do hemisfério, do guarda-sol, da canga, da madeira, da casca, da folhagem, do ruído e da partícula** — geradas proceduralmente com auxílio do Claude (IA); a textura da ilha foi gerada a partir do height map.
 - **Skybox de dia:** "Skybox 05" ([https://freestylized.com/skybox/sky_05/](https://freestylized.com/skybox/sky_05/)) — FreeStylized, licença Royalty Free.
 - **Skybox de noite:** "Skybox 87" ([https://freestylized.com/skybox/sky_87/](https://freestylized.com/skybox/sky_87/)) — FreeStylized, licença Royalty Free.
 - **Textura da água:** "3 live procedurally generated tiling water textures" ([https://opengameart.org/node/10593](https://opengameart.org/node/10593)) — qubodup, licença [CC0](http://creativecommons.org/publicdomain/zero/1.0/).

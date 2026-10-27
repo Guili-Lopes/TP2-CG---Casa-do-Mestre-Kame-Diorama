@@ -92,6 +92,12 @@ const textureSources = {
     flipY: false,
     repeat: true,
   },
+
+  particle: {
+    url: "./assets/textures/particle.png",
+    flipY: false,
+    repeat: false,
+  },
 };
 
 
