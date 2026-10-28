@@ -1,6 +1,6 @@
 import { createProgramFromFiles, } from "./utils/shaders.js";
 import { getLocations, } from "./utils/program.js";
-import { textureSources, daySkyboxUrls, loadTexture, loadCubemap, } from "./utils/texture.js";
+import { textureSources, daySkyboxUrls, nightSkyboxUrls, loadTexture, loadCubemap, } from "./utils/texture.js";
 import { createShadowMap, getLightViewProjection, } from "./utils/shadow-map.js";
 import { resizeCanvasToDisplaySize, } from "./twgl.full.module.js";
 import { createSceneGeometries, drawGeometry, } from "./utils/geometry.js";
@@ -15,6 +15,7 @@ import { updateCloud, drawCloud, } from "./scene/cloud.js";
 import { updateWater, drawWater, } from "./scene/water.js";
 import { loadWind, updateWind, } from "./scene/wind.js";
 import { updateParticles, burstParticles, createParticleGeometry, drawParticles, } from "./scene/particles.js";
+import { dayNightState, updateDayNight, } from "./scene/day-night.js";
 
 import { markProjectionDirty, getProjectionMatrix, updateCameras, getViewMatrix, getEyePosition, } from "./controls/cameras.js";
 
@@ -55,6 +56,8 @@ const state = {
 
   shadowMap: null,
   skyboxCubemap: null,
+  nightSkyboxCubemap: null,
+  nightFactor: 0,
 
   light: {
     direction: [0.4, 1.0, 0.3],
@@ -82,11 +85,14 @@ const state = {
   lightingEnabled: true,
   fogEnabled: false,
   soundEnabled: false,
-  timeOfDay: 12,
+  timeOfDay: 10,
 };
 
 // Identifica quando o Goku retorna à pose em pé
 let previousParticlePoseIndex = state.poseIndex;
+
+// Guarda o último minuto exibido na barra lateral
+let previousDisplayedMinute = null;
 
 // Desenha uma geometria com material e textura
 function drawShape(gl, geometry, modelMatrix, color, material = "matte", texture = null) {
@@ -351,10 +357,10 @@ async function initialize(gl) {
     attributeNames
   );
 
- state.skyboxProgram.locations = getLocations(
+  state.skyboxProgram.locations = getLocations(
     gl,
     state.skyboxProgram.id,
-    ["u_view", "u_projection", "u_skybox", "u_fogEnabled", "u_fogColor"],
+    ["u_view", "u_projection", "u_skybox", "u_nightSkybox", "u_nightFactor", "u_fogEnabled", "u_fogColor"],
     ["a_coords"]
   );
 
@@ -389,6 +395,12 @@ async function initialize(gl) {
   gl.uniform1i(
     state.skyboxProgram.locations.u_skybox,
     2
+  );
+
+  // Cubemap noturno na unidade quatro
+  gl.uniform1i(
+    state.skyboxProgram.locations.u_nightSkybox,
+    4
   );
 
   // Unidade três reservada para a textura das partículas
@@ -444,8 +456,18 @@ async function initialize(gl) {
     daySkyboxUrls
   );
 
+  // Carrega o skybox noturno
+  state.nightSkyboxCubemap = await loadCubemap(
+    gl,
+    nightSkyboxUrls,
+    4
+  );
+
   // Cria o framebuffer de profundidade
   state.shadowMap = createShadowMap(gl, 2048);
+
+  // Configura a iluminação inicial de acordo com a hora
+  updateDayNight(0, state, porchLight);
 
   gl.clearColor(0.53, 0.81, 0.92, 1.0);
 
@@ -454,6 +476,8 @@ async function initialize(gl) {
   initSidebar(runAction);
   initInput(runAction, gl.canvas);
   updateSidebar(state);
+
+  previousDisplayedMinute = Math.round(state.timeOfDay * 60) % 1440;
 }
 
 // Atualiza as câmeras e os objetos animados
@@ -463,6 +487,9 @@ function update(dt) {
     state.activeCamera,
     consumeInput()
   );
+
+  // Atualiza o relógio, a iluminação e a neblina
+  updateDayNight(dt, state, porchLight);
 
   updateWind(dt);
   updateScenery(dt, state.scenery);
@@ -480,6 +507,14 @@ function update(dt) {
 
   // Partículas existentes continuam vivas mesmo após trocar de pose
   updateParticles(dt, state.poseIndex === 0);
+
+  // Atualiza a barra lateral somente quando o minuto muda
+  const displayedMinute = Math.round(dayNightState.hour * 60) % 1440;
+
+  if (displayedMinute !== previousDisplayedMinute) {
+    previousDisplayedMinute = displayedMinute;
+    updateSidebar(state);
+  }
 }
 
 // Primeira passada: grava a profundidade vista pela luz
@@ -546,6 +581,12 @@ function drawSkybox(gl, viewMatrix, projectionMatrix) {
     projectionMatrix
   );
 
+  // Transição entre o céu diurno e o noturno
+  gl.uniform1f(
+    locations.u_nightFactor,
+    state.nightFactor
+  );
+
   // Aplica a mesma cor da neblina ao horizonte do céu
   gl.uniform1i(
     locations.u_fogEnabled,
@@ -557,13 +598,13 @@ function drawSkybox(gl, viewMatrix, projectionMatrix) {
     state.fog.color
   );
 
-  // Cubemap na unidade de textura dois
+    // Skybox diurno na unidade dois
   gl.activeTexture(gl.TEXTURE2);
+  gl.bindTexture(gl.TEXTURE_CUBE_MAP, state.skyboxCubemap);
 
-  gl.bindTexture(
-    gl.TEXTURE_CUBE_MAP,
-    state.skyboxCubemap
-  );
+  // Skybox noturno na unidade quatro
+  gl.activeTexture(gl.TEXTURE4);
+  gl.bindTexture(gl.TEXTURE_CUBE_MAP, state.nightSkyboxCubemap);
 
   // Permite desenhar no fundo, cuja profundidade é 1
   gl.depthFunc(gl.LEQUAL);

@@ -76,6 +76,15 @@ function updateSidebar(state) {
 
   const currentTime = document.querySelector("#current-time");
 
+  // Atualiza o botão T e sua descrição conforme o período
+  const isDay = state.timeOfDay >= 6 && state.timeOfDay < 18;
+
+  const timeButton = document.querySelector('button[data-action="fastForwardTime"]');
+  const timeShortcut = document.querySelector("#time-shortcut-label");
+
+  timeButton.textContent = isDay ? "Avançar até a noite (T)" : "Avançar até o dia (T)";
+  timeShortcut.textContent = isDay ? "Avançar até a noite" : "Avançar até o dia";
+
   currentPose.textContent = state.poses[state.poseIndex].name;
 
   currentTime.textContent = formatTime(state.timeOfDay);

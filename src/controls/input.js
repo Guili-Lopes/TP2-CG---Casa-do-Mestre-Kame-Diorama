@@ -19,7 +19,7 @@ function initInput(runAction, canvas) {
     "n": () => runAction("toggleFog"),
     "m": () => runAction("toggleSound"),
 
-    "t": () => runAction("skipToNight"),
+    "t": () => runAction("fastForwardTime"),
   };
 
   window.addEventListener("keydown", (event) => {

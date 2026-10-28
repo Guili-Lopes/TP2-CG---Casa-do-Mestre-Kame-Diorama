@@ -179,8 +179,18 @@ const daySkyboxUrls = [
   "./assets/textures/skybox/day/nz.png",
 ];
 
+// Caminhos das seis faces do skybox noturno
+const nightSkyboxUrls = [
+  "./assets/textures/skybox/night/px.png",
+  "./assets/textures/skybox/night/nx.png",
+  "./assets/textures/skybox/night/py.png",
+  "./assets/textures/skybox/night/ny.png",
+  "./assets/textures/skybox/night/pz.png",
+  "./assets/textures/skybox/night/nz.png",
+];
+
 // Carrega as seis faces de um cubemap em paralelo
-async function loadCubemap(gl, urls) {
+async function loadCubemap(gl, urls, textureUnit = 2) {
   if (urls.length !== 6) {
     throw new Error("O cubemap precisa ter exatamente seis imagens.");
   }
@@ -210,7 +220,7 @@ async function loadCubemap(gl, urls) {
   }
 
   // Unidade 2 reservada para o cubemap
-  gl.activeTexture(gl.TEXTURE2);
+  gl.activeTexture(gl.TEXTURE0 + textureUnit);
   gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
 
   // Cubemaps não utilizam inversão vertical
@@ -265,4 +275,4 @@ async function loadCubemap(gl, urls) {
   return texture;
 }
 
-export { textureSources, daySkyboxUrls, loadTexture, loadCubemap};
+export { textureSources, daySkyboxUrls, nightSkyboxUrls, loadTexture, loadCubemap, };

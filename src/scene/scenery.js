@@ -262,13 +262,21 @@ function drawHouse(gl, instance, scenery, stack, drawShape) {
 
   stack.pop();
 
-  // Bulbo luminoso como filho da casa
+  // A lâmpada acende gradualmente durante o anoitecer
+  const nightFactor = porchLight.nightFactor ?? 0;
+
+  const bulbColor = rgb(
+    150 + 105 * nightFactor,
+    150 + 75 * nightFactor,
+    140 + 20 * nightFactor
+  );
+
   drawPart(
     gl,
     "sphere",
     porchLamp.bulb,
     [0.13, 0.13, 0.13],
-    rgb(255, 225, 160),
+    bulbColor,
     stack,
     drawShape,
     "lamp"

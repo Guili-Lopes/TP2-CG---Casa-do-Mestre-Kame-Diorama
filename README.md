@@ -93,7 +93,7 @@ WebGL2 puro com shaders GLSL ES 3.0, e a [TWGL.js](https://twgljs.org/) para uti
 
   _Na cena:_ casa, palmeira, pedra, arbusto, tufo de grama, guarda-sol com canga e píer, lâmpada.
 
-- [ ] **8. Ciclo dia/noite**
+- [x] **8. Ciclo dia/noite**
   > 🍔 Ciclo dia/noite: faça o tempo passar e que isso defina na forma como o cenário é renderizado. Isso pode ser feito configurando-se a fonte de luz direcional com cores diferentes, dependendo da hora do dia
   >
   > Se tiver um skybox, você deve alterá-lo para refletir os horários diferentes

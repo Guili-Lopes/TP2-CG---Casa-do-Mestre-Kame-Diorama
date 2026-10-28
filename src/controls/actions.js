@@ -2,6 +2,8 @@ import { updateSidebar, } from "./sidebar.js";
 
 import { transitionToCamera, } from "./cameras.js";
 
+import { startFastForward, } from "../scene/day-night.js";
+
 // Define as ações que alteram o estado da aplicação
 function createActions(state) {
   return {
@@ -28,8 +30,8 @@ function createActions(state) {
       state.soundEnabled = !state.soundEnabled;
     },
 
-    skipToNight() {
-      state.timeOfDay = 20;
+    fastForwardTime() {
+      startFastForward();
     },
   };
 }
