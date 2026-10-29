@@ -12,12 +12,6 @@ const soundSources = {
     loop: true,
   },
 
-  ki: {
-    url: "./assets/sounds/dbz-charging.mp3",
-    volume: 0,
-    loop: true,
-  },
-
   teleport: {
     url: "./assets/sounds/goku-teleport-sound.mp3",
     volume: 0.7,
@@ -59,7 +53,7 @@ function setSoundEnabled(enabled) {
   soundEnabled = enabled;
 
   if (enabled) {
-    for (const name of ["music", "waves", "ki"]) {
+    for (const name of ["music", "waves"]) {
       sounds[name]?.play().catch(() => {});
     }
 
@@ -99,16 +93,4 @@ function playEffect(name) {
   });
 }
 
-// Ajusta o zumbido do ki conforme a quantidade de partículas
-function updateAudio(state, aliveCount) {
-  if (!sounds.ki) {
-    return;
-  }
-
-  const intensity = Math.min(aliveCount / 138, 1);
-  const volume = state.soundEnabled ? 0.5 * intensity : 0;
-
-  sounds.ki.volume = clampVolume(volume);
-}
-
-export { createSounds, setSoundEnabled, playEffect, updateAudio, };
+export { createSounds, setSoundEnabled, playEffect, };

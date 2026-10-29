@@ -14,9 +14,9 @@ import { drawWorld, } from "./scene/world.js";
 import { updateCloud, drawCloud, } from "./scene/cloud.js";
 import { updateWater, drawWater, } from "./scene/water.js";
 import { loadWind, updateWind, } from "./scene/wind.js";
-import { updateParticles, burstParticles, createParticleGeometry, drawParticles, getAliveCount, } from "./scene/particles.js";
+import { updateParticles, burstParticles, createParticleGeometry, drawParticles, } from "./scene/particles.js";
 import { dayNightState, updateDayNight, } from "./scene/day-night.js";
-import { createSounds, updateAudio, } from "./scene/audio.js";
+import { createSounds, } from "./scene/audio.js";
 
 import { markProjectionDirty, getProjectionMatrix, updateCameras, getViewMatrix, getEyePosition, } from "./controls/cameras.js";
 
@@ -511,9 +511,6 @@ function update(dt) {
 
   // Partículas existentes continuam vivas mesmo após trocar de pose
   updateParticles(dt, state.poseIndex === 0);
-
-  // Ajusta o zumbido do ki conforme a intensidade da aura
-  updateAudio(state, getAliveCount());
 
   // Atualiza a barra lateral somente quando o minuto muda
   const displayedMinute = Math.round(dayNightState.hour * 60) % 1440;
