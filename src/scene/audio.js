@@ -2,13 +2,13 @@
 const soundSources = {
   music: {
     url: "./assets/sounds/CHALA HEAD CHALA Dragon ball z na versao Forro.mp3",
-    volume: 0.35,
+    volume: 0.12,
     loop: true,
   },
 
   waves: {
     url: "./assets/sounds/waves.mp3",
-    volume: 0.4,
+    volume: 1.0,
     loop: true,
   },
 
