@@ -3,6 +3,7 @@ import { updateSidebar, } from "./sidebar.js";
 import { transitionToCamera, } from "./cameras.js";
 
 import { startFastForward, } from "../scene/day-night.js";
+import { setSoundEnabled, playEffect, } from "../scene/audio.js";
 
 // Define as ações que alteram o estado da aplicação
 function createActions(state) {
@@ -16,6 +17,9 @@ function createActions(state) {
 
     nextPose() {
       state.poseIndex = (state.poseIndex + 1) % state.poses.length;
+
+      // Efeito de teletransporte ao trocar de pose
+      playEffect("teleport");
     },
 
     toggleLighting() {
@@ -28,6 +32,9 @@ function createActions(state) {
 
     toggleSound() {
       state.soundEnabled = !state.soundEnabled;
+
+      // Liga ou desliga todos os sons
+      setSoundEnabled(state.soundEnabled);
     },
 
     fastForwardTime() {

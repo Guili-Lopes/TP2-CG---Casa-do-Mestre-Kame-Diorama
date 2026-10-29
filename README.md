@@ -63,7 +63,7 @@ WebGL2 puro com shaders GLSL ES 3.0, e a [TWGL.js](https://twgljs.org/) para uti
 
   _Na cena:_ névoa do mar com a cor do horizonte, alternada pela tecla <kbd>N</kbd>.
 
-- [ ] **2. Música e efeitos sonoros**
+- [x] **2. Música e efeitos sonoros**
   > 🌟 Música, efeitos sonoros e/ou som ambiente: inclua música de fundo, sons ambiente e efeitos sonoros (este último, caso haja algum tipo de interação)
 
   _Na cena:_ música de fundo (Cha-La Head-Cha-La na voz do autor), som ambiente de ondas e efeito sonoro quando as esferas do dragão surgem.

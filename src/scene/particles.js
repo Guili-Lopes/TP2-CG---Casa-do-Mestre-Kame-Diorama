@@ -168,4 +168,9 @@ function drawParticles(gl, geometry) {
   gl.bindBuffer(gl.ARRAY_BUFFER, null);
 }
 
-export { MAX_PARTICLES, updateParticles, burstParticles, createParticleGeometry, drawParticles, };
+// Devolve a quantidade atual de partículas vivas
+function getAliveCount() {
+  return aliveCount;
+}
+
+export { MAX_PARTICLES, updateParticles, burstParticles, createParticleGeometry, drawParticles, getAliveCount };
