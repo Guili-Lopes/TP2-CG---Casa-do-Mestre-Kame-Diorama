@@ -1,0 +1,20 @@
+newmtl antlers
+Kd 0.608 0.396 0.000
+
+newmtl belly
+Kd 0.902 0.902 0.565
+
+newmtl red
+Kd 0.902 0.145 0.247
+
+newmtl body
+Kd 0.192 0.541 0.173
+
+newmtl claws
+Kd 0.000 0.000 0.000
+
+newmtl teeth
+Kd 0.902 0.902 0.902
+
+newmtl spines
+Kd 0.192 0.325 0.180
