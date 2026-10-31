@@ -3,6 +3,7 @@ import { m4, } from "../twgl.full.module.js";
 import { loadModel, } from "../utils/obj-loader.js";
 import { getGroundHeight, } from "./terrain.js";
 import { playEffect, } from "./audio.js";
+import { getEyePosition, } from "../controls/cameras.js";
 
 const ballCenter = [-0.4, 4.7];
 const ballRadius = 0.12;
@@ -151,7 +152,7 @@ function updateEasterEgg(dt, nightFactor) {
 }
 
 // Desenha as esferas e o Shenlong nos programas normal e de sombra
-function drawEasterEgg(gl, drawShape, setCoil) {
+function drawEasterEgg(gl, drawShape, setCoil, activeCamera = 1) {
   const egg = easterEggState;
 
   if (egg.ballsAppear > 0) {
@@ -184,12 +185,13 @@ function drawEasterEgg(gl, drawShape, setCoil) {
 
   const centerY = getGroundHeight(ballCenter[0], ballCenter[1]) + 0.1;
   const scale = 0.04 * egg.shenlongAppear;
-
+  const eye = getEyePosition(activeCamera);
+  const facing = Math.atan2(eye[0] - ballCenter[0], eye[2] - ballCenter[1]);
   // T * Ry * S
   const modelMatrix = m4.multiply(
     m4.multiply(
       m4.translation([ballCenter[0], centerY, ballCenter[1]]),
-      m4.rotationY(0.35 * Math.sin(egg.time * 0.2))
+      m4.rotationY(facing + 0.25 * Math.sin(egg.time * 0.2))
     ),
     m4.scaling([scale, scale, scale])
   );

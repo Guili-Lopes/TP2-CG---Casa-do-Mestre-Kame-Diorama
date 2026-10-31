@@ -77,8 +77,9 @@ void main() {
         float e = 0.001;
 
         vec3 T = normalize(coilCurve(min(u + e, 1.0)) - coilCurve(max(u - e, 0.0)));
-        vec3 reference = normalize(mix(vec3(0.0, 0.0, -1.0), vec3(0.0, 1.0, 0.0), smoothstep(0.80, 0.92, u)));
-        vec3 B = normalize(reference - dot(reference, T) * T);
+        vec3 bodyBack = normalize(cross(T, vec3(0.0, 0.0, 1.0)));
+        vec3 headBack = normalize(vec3(0.0, 1.0, 0.0) - T.y * T);
+        vec3 B = normalize(mix(bodyBack, headBack, smoothstep(0.80, 0.90, u)));
         vec3 N = normalize(cross(T, B));
 
         position = center + (a_coords.x * N + a_coords.y * B) * 1.6;

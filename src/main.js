@@ -293,7 +293,8 @@ function drawScene(gl) {
   drawEasterEgg(
     gl,
     drawShape,
-    setCoil
+    setCoil,
+    state.activeCamera,
   );
 }
 
