@@ -6,7 +6,7 @@
 
 📦 **Repositório:** https://github.com/Guili-Lopes/TP2-CG---Casa-do-Mestre-Kame-Diorama
 
-🎬 **Vídeo:** _(link do YouTube)_
+🎬 **Vídeo:** https://youtu.be/9kyW9sLNBsY?si=H_PrHCeoZjeK77EF
 
 ---
 
