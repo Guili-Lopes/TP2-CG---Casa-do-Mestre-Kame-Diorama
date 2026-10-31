@@ -43,7 +43,7 @@ Todos os controles também estão disponíveis como botões na barra lateral, qu
 
 ---
 
-## (c) Media kit
+## (c) Screenshots
 
 | Dia | Noite |
 |---|---|
