@@ -98,6 +98,48 @@ const textureSources = {
     flipY: false,
     repeat: false,
   },
+
+  "dragon-ball-1": {
+    url: "./assets/textures/dragon-ball-1.png",
+    flipY: false,
+    repeat: false,
+  },
+
+  "dragon-ball-2": {
+    url: "./assets/textures/dragon-ball-2.png",
+    flipY: false,
+    repeat: false,
+  },
+
+  "dragon-ball-3": {
+    url: "./assets/textures/dragon-ball-3.png",
+    flipY: false,
+    repeat: false,
+  },
+
+  "dragon-ball-4": {
+    url: "./assets/textures/dragon-ball-4.png",
+    flipY: false,
+    repeat: false,
+  },
+
+  "dragon-ball-5": {
+    url: "./assets/textures/dragon-ball-5.png",
+    flipY: false,
+    repeat: false,
+  },
+
+  "dragon-ball-6": {
+    url: "./assets/textures/dragon-ball-6.png",
+    flipY: false,
+    repeat: false,
+  },
+
+  "dragon-ball-7": {
+    url: "./assets/textures/dragon-ball-7.png",
+    flipY: false,
+    repeat: false,
+  },
 };
 
 

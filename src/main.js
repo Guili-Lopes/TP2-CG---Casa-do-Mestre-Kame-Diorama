@@ -17,6 +17,7 @@ import { loadWind, updateWind, } from "./scene/wind.js";
 import { updateParticles, burstParticles, createParticleGeometry, drawParticles, } from "./scene/particles.js";
 import { dayNightState, updateDayNight, } from "./scene/day-night.js";
 import { createSounds, } from "./scene/audio.js";
+import { loadEasterEgg, updateEasterEgg, drawEasterEgg, } from "./scene/easter-egg.js";
 
 import { markProjectionDirty, getProjectionMatrix, updateCameras, getViewMatrix, getEyePosition, } from "./controls/cameras.js";
 
@@ -78,6 +79,8 @@ const state = {
   textures: null,
   scenery: null,
   goku: null,
+
+  easterEgg: null,
 
   activeCamera: 1,
   poseIndex: 0,
@@ -238,6 +241,26 @@ function setWater(gl, water = null) {
   gl.uniform2fv(locations.u_waterSpeeds, water.speeds);
 }
 
+// Liga ou desliga a deformação do Shenlong ao longo da curva
+function setCoil(gl, coil = null) {
+  const locations = state.program.locations;
+
+  gl.uniform1i(locations.u_coilEnabled, coil ? 1 : 0);
+
+  if (!coil) {
+    return;
+  }
+
+  gl.uniform1f(locations.u_coilTurns, coil.turns);
+  gl.uniform4fv(locations.u_coilShape, coil.shape);
+  gl.uniform1f(locations.u_coilScale, coil.scale);
+  gl.uniform1f(locations.u_coilTailZ, coil.tailZ);
+  gl.uniform1f(locations.u_coilLength, coil.length);
+
+  // O u_time é compartilhado cada objeto envia o próprio tempo antes de desenhar
+  gl.uniform1f(locations.u_time, coil.time);
+}
+
 // Desenha os objetos opacos da cena
 function drawScene(gl) {
   drawWorld(gl, drawShape);
@@ -264,6 +287,13 @@ function drawScene(gl) {
     gl,
     matrixStack,
     drawShape
+  );
+
+  // Desenha as esferas e o Shenlong quando estiverem visíveis
+  drawEasterEgg(
+    gl,
+    drawShape,
+    setCoil
   );
 }
 
@@ -336,6 +366,12 @@ async function initialize(gl) {
     "u_waterWave1",
     "u_waterWave2",
     "u_waterSpeeds",
+    "u_coilEnabled",
+    "u_coilTurns",
+    "u_coilShape",
+    "u_coilScale",
+    "u_coilTailZ",
+    "u_coilLength"
   ];
 
   const attributeNames = [
@@ -427,6 +463,15 @@ async function initialize(gl) {
   state.scenery = await loadScenery(gl, locations);
   state.goku = await loadGoku(gl, locations);
 
+  // Carrega o Shenlong e prepara as esferas do dragão
+  state.easterEgg = await loadEasterEgg(gl, locations);
+
+  // Uma lâmpada e sete luzes das esferas
+  state.pointLights = [
+    porchLight,
+    ...state.easterEgg.lights,
+  ];
+
   // Prepara o buffer dinâmico das partículas
   state.particleGeometry = createParticleGeometry(gl);
 
@@ -494,6 +539,9 @@ function update(dt) {
 
   // Atualiza o relógio, a iluminação e a neblina
   updateDayNight(dt, state, porchLight);
+
+  // Controla o surgimento das esferas e do Shenlong
+  updateEasterEgg(dt, state.nightFactor);
 
   updateWind(dt);
   updateScenery(dt, state.scenery);
